@@ -50,20 +50,40 @@ const listen=(ref,cb)=>{ref.on("value",s=>{const v=s.val();cb(v?Object.entries(v
 
 /* ═══ DATA ═══ */
 const PRESETS=[
+  /* ── Dark E-commerce (premium feel) ── */
   {id:"obsidian",l:"Obsidian",bg:"#08080d",ac:"#00e5ff",tx:"#eef0f6",sb:"#6b7280",cb:"#111118",bd:"#1a1d2a"},
-  {id:"snow",l:"Snow",bg:"#f7f7f2",ac:"#0f172a",tx:"#0f172a",sb:"#64748b",cb:"#ffffff",bd:"#e2e2dd"},
+  {id:"midnight",l:"Midnight",bg:"#0b0e1a",ac:"#6c9fff",tx:"#e8edf8",sb:"#6878a0",cb:"#111629",bd:"#1c2440"},
+  {id:"carbon",l:"Carbon",bg:"#121212",ac:"#e0e0e0",tx:"#fafafa",sb:"#808080",cb:"#1a1a1a",bd:"#2a2a2a"},
   {id:"cyber",l:"Cyber",bg:"#0a0015",ac:"#f43f5e",tx:"#ede9fe",sb:"#7c6f99",cb:"#120020",bd:"#2a1540"},
-  {id:"forest",l:"Bosque",bg:"#0b1410",ac:"#34d399",tx:"#ecfdf5",sb:"#6b8a7a",cb:"#0f1f18",bd:"#1a3328"},
+  {id:"amzn",l:"Amazon",bg:"#0f1111",ac:"#febd69",tx:"#e3e6e6",sb:"#888c8c",cb:"#1a1d1d",bd:"#2a2d2d"},
+  {id:"gaming",l:"Gaming",bg:"#0a0a12",ac:"#7c3aed",tx:"#f0e8ff",sb:"#7a6fa0",cb:"#12121f",bd:"#201e35"},
+  /* ── Light E-commerce (clean/trust) ── */
+  {id:"snow",l:"Snow",bg:"#f7f7f2",ac:"#0f172a",tx:"#0f172a",sb:"#64748b",cb:"#ffffff",bd:"#e2e2dd"},
+  {id:"shopify",l:"Shopify",bg:"#f6f6f1",ac:"#008060",tx:"#1a1a1a",sb:"#6b7177",cb:"#ffffff",bd:"#e1e3e5"},
+  {id:"apple",l:"Apple",bg:"#fbfbfd",ac:"#0071e3",tx:"#1d1d1f",sb:"#86868b",cb:"#ffffff",bd:"#e8e8ed"},
+  {id:"cream",l:"Cream",bg:"#faf8f4",ac:"#c2702a",tx:"#2c1810",sb:"#8a7a6a",cb:"#ffffff",bd:"#ede8e0"},
+  {id:"blush",l:"Blush",bg:"#fdf2f4",ac:"#be185d",tx:"#1c1017",sb:"#9a7a85",cb:"#ffffff",bd:"#f5dfe4"},
+  {id:"mint",l:"Mint",bg:"#f0faf6",ac:"#059669",tx:"#0c1f17",sb:"#6b8a7a",cb:"#ffffff",bd:"#d5f0e5"},
+  /* ── Bold E-commerce (call to action) ── */
+  {id:"meli",l:"MercadoLibre",bg:"#1a1a2e",ac:"#ffe600",tx:"#f5f5f5",sb:"#a0a0b8",cb:"#22223a",bd:"#2e2e48"},
   {id:"sunset",l:"Atardecer",bg:"#1a0a05",ac:"#fb923c",tx:"#fff7ed",sb:"#9a7a6a",cb:"#1f1008",bd:"#3a2010"},
+  {id:"forest",l:"Bosque",bg:"#0b1410",ac:"#34d399",tx:"#ecfdf5",sb:"#6b8a7a",cb:"#0f1f18",bd:"#1a3328"},
   {id:"royal",l:"Royal",bg:"#0a0520",ac:"#818cf8",tx:"#e0e7ff",sb:"#6b6f9a",cb:"#100830",bd:"#1e1548"},
+  {id:"fire",l:"Hot Deal",bg:"#1a0505",ac:"#ef4444",tx:"#fef2f2",sb:"#b07070",cb:"#200808",bd:"#3a1515"},
+  {id:"gold",l:"Luxury",bg:"#0f0d08",ac:"#d4a853",tx:"#f5f0e0",sb:"#9a9080",cb:"#18150e",bd:"#2e2a1e"},
 ];
-const BADGES=["Nuevo","Oferta","Envío gratis","Último","Original","Garantía","Premium","2x1"];
+const BADGES=["Nuevo","Oferta","Envío gratis","Último","Original","Garantía","Premium","2x1","Hot 🔥","Top ventas","Edición limitada"];
 const GRADS=[
   "linear-gradient(135deg,#667eea,#764ba2)","linear-gradient(135deg,#f093fb,#f5576c)",
   "linear-gradient(135deg,#4facfe,#00f2fe)","linear-gradient(135deg,#43e97b,#38f9d7)",
   "linear-gradient(135deg,#fa709a,#fee140)","linear-gradient(135deg,#a18cd1,#fbc2eb)",
   "linear-gradient(135deg,#fccb90,#d57eeb)","linear-gradient(135deg,#0c3483,#a2b6df)",
-  "linear-gradient(135deg,#f7971e,#ffd200)","linear-gradient(135deg,#e44d26,#f16529)","none"
+  "linear-gradient(135deg,#f7971e,#ffd200)","linear-gradient(135deg,#e44d26,#f16529)",
+  "linear-gradient(135deg,#0f0c29,#302b63,#24243e)","linear-gradient(135deg,#200122,#6f0000)",
+  "linear-gradient(135deg,#1a2a6c,#b21f1f,#fdbb2d)","linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
+  "linear-gradient(135deg,#ffe259,#ffa751)","linear-gradient(135deg,#c31432,#240b36)",
+  "radial-gradient(circle at 30% 40%,#1a1a2e,#0a0a14)","radial-gradient(circle at 70% 60%,#1e3a5f,#0a0a14)",
+  "radial-gradient(circle at 50% 50%,#2d1b4e,#0a0510)","none"
 ];
 const mkP=()=>({id:Date.now().toString()+Math.random().toString(36).slice(2,6),name:"",price:"",oldPrice:"",desc:"",badge:"Nuevo",showBadge:true,specs:["","","",""],themeId:"obsidian",images:[],customColors:null,gradient:"none",createdAt:Date.now()});
 const gT=p=>{const b=PRESETS.find(x=>x.id===p.themeId)||PRESETS[0];const t={bg:b.bg,accent:b.ac,text:b.tx,sub:b.sb,cardBg:b.cb,border:b.bd,id:b.id};if(p.customColors)return{...t,...p.customColors};return t};
@@ -437,12 +457,31 @@ function EditorView({product:init,onSave,onCancel}){
                 ))}
               </div>
               {cTab==="presets"&&(
-                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:5}}>
-                  {PRESETS.filter(x=>x.id!=="custom").map(tp=>(
-                    <button key={tp.id} onClick={()=>{set("themeId",tp.id);set("customColors",null)}} style={{padding:"8px 4px",borderRadius:8,border:p.themeId===tp.id&&!p.customColors?"2px solid #a78bfa":"1px solid rgba(255,255,255,.06)",background:tp.bg,color:tp.tx,fontSize:10,fontWeight:600}}>
-                      <span style={{display:"block",width:10,height:10,borderRadius:"50%",background:tp.ac,margin:"0 auto 3px"}} />{tp.l}
-                    </button>
-                  ))}
+                <div style={{maxHeight:220,overflowY:"auto",paddingRight:4}}>
+                  <p style={{fontSize:9,color:"#3f3f46",marginBottom:4}}>🌙 Oscuros</p>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:4,marginBottom:8}}>
+                    {PRESETS.filter(x=>["obsidian","midnight","carbon","cyber","amzn","gaming"].includes(x.id)).map(tp=>(
+                      <button key={tp.id} onClick={()=>{set("themeId",tp.id);set("customColors",null)}} style={{padding:"7px 3px",borderRadius:8,border:p.themeId===tp.id&&!p.customColors?"2px solid #a78bfa":"1px solid rgba(255,255,255,.06)",background:tp.bg,color:tp.tx,fontSize:9,fontWeight:600}}>
+                        <span style={{display:"block",width:10,height:10,borderRadius:"50%",background:tp.ac,margin:"0 auto 3px"}} />{tp.l}
+                      </button>
+                    ))}
+                  </div>
+                  <p style={{fontSize:9,color:"#3f3f46",marginBottom:4}}>☀️ Claros</p>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:4,marginBottom:8}}>
+                    {PRESETS.filter(x=>["snow","shopify","apple","cream","blush","mint"].includes(x.id)).map(tp=>(
+                      <button key={tp.id} onClick={()=>{set("themeId",tp.id);set("customColors",null)}} style={{padding:"7px 3px",borderRadius:8,border:p.themeId===tp.id&&!p.customColors?"2px solid #a78bfa":"1px solid rgba(255,255,255,.06)",background:tp.bg,color:tp.tx,fontSize:9,fontWeight:600}}>
+                        <span style={{display:"block",width:10,height:10,borderRadius:"50%",background:tp.ac,margin:"0 auto 3px"}} />{tp.l}
+                      </button>
+                    ))}
+                  </div>
+                  <p style={{fontSize:9,color:"#3f3f46",marginBottom:4}}>🔥 Llamativos</p>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:4}}>
+                    {PRESETS.filter(x=>["meli","sunset","forest","royal","fire","gold"].includes(x.id)).map(tp=>(
+                      <button key={tp.id} onClick={()=>{set("themeId",tp.id);set("customColors",null)}} style={{padding:"7px 3px",borderRadius:8,border:p.themeId===tp.id&&!p.customColors?"2px solid #a78bfa":"1px solid rgba(255,255,255,.06)",background:tp.bg,color:tp.tx,fontSize:9,fontWeight:600}}>
+                        <span style={{display:"block",width:10,height:10,borderRadius:"50%",background:tp.ac,margin:"0 auto 3px"}} />{tp.l}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
               {cTab==="custom"&&(
@@ -458,10 +497,12 @@ function EditorView({product:init,onSave,onCancel}){
                 </div>
               )}
               {cTab==="gradient"&&(
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:5}}>
-                  {GRADS.map((g,i)=>(
-                    <button key={i} onClick={()=>set("gradient",g)} style={{width:"100%",height:28,borderRadius:6,border:p.gradient===g?"2px solid #a78bfa":"1px solid rgba(255,255,255,.08)",background:g==="none"?"rgba(255,255,255,.04)":g,fontSize:9,color:g==="none"?"#52525b":"transparent"}}>{g==="none"?"Sin":""}</button>
-                  ))}
+                <div style={{maxHeight:180,overflowY:"auto"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:4}}>
+                    {GRADS.map((g,i)=>(
+                      <button key={i} onClick={()=>set("gradient",g)} style={{width:"100%",height:28,borderRadius:6,border:p.gradient===g?"2px solid #a78bfa":"1px solid rgba(255,255,255,.08)",background:g==="none"?"rgba(255,255,255,.04)":g,fontSize:8,color:g==="none"?"#52525b":"transparent"}}>{g==="none"?"Sin":""}</button>
+                    ))}
+                  </div>
                 </div>
               )}
             </Sec>
