@@ -697,13 +697,135 @@ function PublicCatalog() {
   })));
 }
 
-// Admin Panel placeholder 
+// Admin Panel with full functionality
 function AdminPanel({ user }) {
   const [products, setProducts] = React.useState([]);
-  
+  const [loading, setLoading] = React.useState(true);
+  const [showForm, setShowForm] = React.useState(false);
+  const [editingId, setEditingId] = React.useState(null);
+  const [formData, setFormData] = React.useState({
+    name: '',
+    price: '',
+    oldPrice: '',
+    description: '',
+    badge: '',
+    specs: '',
+    photos: []
+  });
+
+  React.useEffect(() => {
+    const ref = db.ref('products');
+    ref.on('value', snapshot => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        })).filter(p => !p.deleted);
+        setProducts(list);
+      }
+      setLoading(false);
+    });
+    return () => ref.off();
+  }, []);
+
   const handleSignOut = () => {
     auth.signOut();
   };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      price: '',
+      oldPrice: '',
+      description: '',
+      badge: '',
+      specs: '',
+      photos: []
+    });
+    setEditingId(null);
+    setShowForm(false);
+  };
+
+  const handleEdit = (product) => {
+    setFormData({
+      name: product.name || '',
+      price: product.price || '',
+      oldPrice: product.oldPrice || '',
+      description: product.description || '',
+      badge: product.badge || '',
+      specs: product.specs ? product.specs.join(', ') : '',
+      photos: product.photos || []
+    });
+    setEditingId(product.id);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm('¿Eliminar este producto?')) {
+      await db.ref(`products/${id}`).update({ deleted: true });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const specs = formData.specs ? formData.specs.split(',').map(s => s.trim()).filter(s => s) : [];
+    const productData = {
+      ...formData,
+      specs,
+      updatedAt: Date.now()
+    };
+
+    try {
+      if (editingId) {
+        await db.ref(`products/${editingId}`).update(productData);
+      } else {
+        await db.ref('products').push(productData);
+      }
+      resetForm();
+    } catch (error) {
+      alert('Error al guardar: ' + error.message);
+    }
+  };
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData(prev => ({
+          ...prev,
+          photos: [...prev.photos, e.target.result]
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
+  };
+
+  if (loading) return React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 36,
+      height: 36,
+      border: "3px solid rgba(167,139,250,.2)",
+      borderTopColor: "#a78bfa",
+      borderRadius: "50%",
+      animation: "spin .8s linear infinite"
+    }
+  }));
 
   return React.createElement("div", {
     style: {
@@ -716,19 +838,19 @@ function AdminPanel({ user }) {
       maxWidth: 1200,
       margin: "0 auto"
     }
-  }, React.createElement("div", {
+  }, 
+  // Header
+  React.createElement("div", {
     style: {
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 24
-    }
-  }, React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
+      marginBottom: 24,
+      flexWrap: "wrap",
       gap: 10
     }
+  }, React.createElement("div", {
+    style: { display: "flex", alignItems: "center", gap: 10 }
   }, React.createElement("div", {
     style: {
       width: 42,
@@ -744,7 +866,7 @@ function AdminPanel({ user }) {
     src: "Logo%20Fnal.png",
     alt: "IscoTech.Store",
     style: { width: 32, height: 32, objectFit: "contain" }
-  })), React.createElement("h1", {
+  })), React.createElement("div", null, React.createElement("h1", {
     style: {
       margin: 0,
       fontSize: 24,
@@ -754,7 +876,7 @@ function AdminPanel({ user }) {
   }, React.createElement("span", {
     style: {
       background: "linear-gradient(135deg,#a78bfa,#06b6d4)",
-      WebkitBackgroundClip: "text", 
+      WebkitBackgroundClip: "text",
       WebkitTextFillColor: "transparent"
     }
   }, "IscoTech.Store"), React.createElement("span", {
@@ -764,7 +886,27 @@ function AdminPanel({ user }) {
       color: "#52525b",
       marginLeft: 8
     }
-  }, "Admin"))), React.createElement("button", {
+  }, "Admin")), React.createElement("p", {
+    style: {
+      margin: "2px 0 0",
+      fontSize: 11,
+      color: "#3f3f46"
+    }
+  }, `${products.length} productos`))), React.createElement("div", {
+    style: { display: "flex", gap: 8 }
+  }, React.createElement("button", {
+    onClick: () => setShowForm(!showForm),
+    style: {
+      padding: "8px 16px",
+      borderRadius: 8,
+      border: "none",
+      background: "#6366f1",
+      color: "#fff",
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: "pointer"
+    }
+  }, showForm ? "Cancelar" : "Nuevo producto"), React.createElement("button", {
     onClick: handleSignOut,
     style: {
       padding: "8px 16px",
@@ -775,12 +917,276 @@ function AdminPanel({ user }) {
       fontSize: 13,
       cursor: "pointer"
     }
-  }, "Salir")), React.createElement(Empty, {
-    icon: "🚧",
-    title: "Panel de administración",
-    sub: "En construcción",
-    light: true
-  })));
+  }, "Salir"))),
+
+  // Form
+  showForm && React.createElement("div", {
+    style: {
+      background: "#fff",
+      borderRadius: 12,
+      padding: 20,
+      marginBottom: 20,
+      border: "1px solid #e2e8f0",
+      boxShadow: "0 1px 3px rgba(0,0,0,.1)"
+    }
+  }, React.createElement("h3", {
+    style: {
+      margin: "0 0 16px",
+      fontSize: 16,
+      fontWeight: 700,
+      color: "#111827"
+    }
+  }, editingId ? "Editar producto" : "Nuevo producto"), React.createElement("form", {
+    onSubmit: handleSubmit
+  }, React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 12,
+      marginBottom: 12
+    }
+  }, React.createElement("input", {
+    type: "text",
+    placeholder: "Nombre del producto",
+    value: formData.name,
+    onChange: e => setFormData(prev => ({ ...prev, name: e.target.value })),
+    style: {
+      padding: "8px 12px",
+      borderRadius: 6,
+      border: "1px solid #d1d5db",
+      fontSize: 14
+    },
+    required: true
+  }), React.createElement("input", {
+    type: "text",
+    placeholder: "Precio (ej: $ 1.500.000)",
+    value: formData.price,
+    onChange: e => setFormData(prev => ({ ...prev, price: e.target.value })),
+    style: {
+      padding: "8px 12px",
+      borderRadius: 6,
+      border: "1px solid #d1d5db",
+      fontSize: 14
+    }
+  })), React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 12,
+      marginBottom: 12
+    }
+  }, React.createElement("input", {
+    type: "text",
+    placeholder: "Precio anterior (opcional)",
+    value: formData.oldPrice,
+    onChange: e => setFormData(prev => ({ ...prev, oldPrice: e.target.value })),
+    style: {
+      padding: "8px 12px",
+      borderRadius: 6,
+      border: "1px solid #d1d5db",
+      fontSize: 14
+    }
+  }), React.createElement("select", {
+    value: formData.badge,
+    onChange: e => setFormData(prev => ({ ...prev, badge: e.target.value })),
+    style: {
+      padding: "8px 12px",
+      borderRadius: 6,
+      border: "1px solid #d1d5db",
+      fontSize: 14
+    }
+  }, React.createElement("option", { value: "" }, "Sin etiqueta"), React.createElement("option", { value: "NUEVO" }, "NUEVO"), React.createElement("option", { value: "ÚLTIMO" }, "ÚLTIMO"), React.createElement("option", { value: "PROMOCIÓN" }, "PROMOCIÓN"))), React.createElement("textarea", {
+    placeholder: "Descripción del producto",
+    value: formData.description,
+    onChange: e => setFormData(prev => ({ ...prev, description: e.target.value })),
+    style: {
+      padding: "8px 12px",
+      borderRadius: 6,
+      border: "1px solid #d1d5db",
+      fontSize: 14,
+      minHeight: 80,
+      width: "100%",
+      marginBottom: 12,
+      resize: "vertical"
+    }
+  }), React.createElement("input", {
+    type: "text",
+    placeholder: "Especificaciones (separadas por comas)",
+    value: formData.specs,
+    onChange: e => setFormData(prev => ({ ...prev, specs: e.target.value })),
+    style: {
+      padding: "8px 12px",
+      borderRadius: 6,
+      border: "1px solid #d1d5db",
+      fontSize: 14,
+      width: "100%",
+      marginBottom: 12
+    }
+  }), React.createElement("div", {
+    style: { marginBottom: 16 }
+  }, React.createElement("label", {
+    style: {
+      display: "block",
+      marginBottom: 8,
+      fontSize: 14,
+      fontWeight: 500,
+      color: "#374151"
+    }
+  }, "Fotos:"), React.createElement("input", {
+    type: "file",
+    accept: "image/*",
+    onChange: handlePhotoUpload,
+    style: {
+      marginBottom: 8
+    }
+  }), formData.photos.length > 0 && React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap"
+    }
+  }, formData.photos.map((photo, i) =>
+    React.createElement("div", {
+      key: i,
+      style: { position: "relative" }
+    }, React.createElement("img", {
+      src: photo,
+      style: {
+        width: 60,
+        height: 60,
+        objectFit: "cover",
+        borderRadius: 4,
+        border: "1px solid #e5e7eb"
+      }
+    }), React.createElement("button", {
+      type: "button",
+      onClick: () => removePhoto(i),
+      style: {
+        position: "absolute",
+        top: -6,
+        right: -6,
+        width: 16,
+        height: 16,
+        borderRadius: "50%",
+        background: "#ef4444",
+        color: "#fff",
+        border: "none",
+        fontSize: 10,
+        cursor: "pointer"
+      }
+    }, "×"))))), React.createElement("div", {
+    style: { display: "flex", gap: 8 }
+  }, React.createElement("button", {
+    type: "submit",
+    style: {
+      padding: "8px 16px",
+      borderRadius: 6,
+      border: "none",
+      background: "#10b981",
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: 600,
+      cursor: "pointer"
+    }
+  }, editingId ? "Actualizar" : "Crear"), React.createElement("button", {
+    type: "button",
+    onClick: resetForm,
+    style: {
+      padding: "8px 16px",
+      borderRadius: 6,
+      border: "1px solid #d1d5db",
+      background: "#fff",
+      color: "#6b7280",
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, "Cancelar")))),
+
+  // Products grid
+  products.length > 0 ? React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+      gap: 16
+    }
+  }, products.map(p =>
+    React.createElement("div", {
+      key: p.id,
+      style: {
+        background: "#fff",
+        borderRadius: 8,
+        overflow: "hidden",
+        border: "1px solid #e5e7eb",
+        position: "relative"
+      }
+    }, p.photos?.[0] && React.createElement("img", {
+      src: p.photos[0],
+      style: {
+        width: "100%",
+        height: 160,
+        objectFit: "cover"
+      }
+    }), React.createElement("div", {
+      style: { padding: 12 }
+    }, React.createElement("h4", {
+      style: {
+        margin: "0 0 4px",
+        fontSize: 14,
+        fontWeight: 600,
+        color: "#111827"
+      }
+    }, p.name || "Sin nombre"), React.createElement("p", {
+      style: {
+        fontSize: 16,
+        fontWeight: 800,
+        color: "#059669",
+        margin: 0
+      }
+    }, p.price || "—")), React.createElement("div", {
+      style: {
+        position: "absolute",
+        top: 8,
+        right: 8,
+        display: "flex",
+        gap: 4
+      }
+    }, React.createElement("button", {
+      onClick: () => handleEdit(p),
+      style: {
+        width: 24,
+        height: 24,
+        borderRadius: 4,
+        border: "none",
+        background: "#3b82f6",
+        color: "#fff",
+        fontSize: 10,
+        cursor: "pointer"
+      }
+    }, "✏️"), React.createElement("button", {
+      onClick: () => handleDelete(p.id),
+      style: {
+        width: 24,
+        height: 24,
+        borderRadius: 4,
+        border: "none",
+        background: "#ef4444",
+        color: "#fff",
+        fontSize: 10,
+        cursor: "pointer"
+      }
+    }, "🗑️"))))) : React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: 60,
+      color: "#6b7280"
+    }
+  }, React.createElement("div", {
+    style: { fontSize: 40, marginBottom: 12 }
+  }, "📦"), React.createElement("p", {
+    style: { fontSize: 16, marginBottom: 8 }
+  }, "Sin productos"), React.createElement("p", {
+    style: { fontSize: 14 }
+  }, "Agrega tu primer producto con el botón de arriba"))));
 }
 
 // Render app
