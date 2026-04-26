@@ -281,7 +281,7 @@ function PublicCatalog() {
   React.useEffect(() => {
     const timeout = setTimeout(() => {
       if (loading) setError('No se pudo conectar. Intenta recargar.');
-    }, 8000);
+    }, 20000);
 
     const ref = db.ref('products');
     ref.on('value', snapshot => {
