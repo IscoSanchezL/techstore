@@ -4,29 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>IscoTech.Store - Catálogo</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⬡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #080810; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; color: #e8edf8; overflow-x: hidden; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { to { transform: rotate(360deg); } }
-.btn { transition: all 0.15s ease; cursor: pointer; border: none; font-family: inherit; }
-.btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.btn:active { transform: scale(0.98); }
-.card { background: linear-gradient(135deg, #0f1118 0%, #1a1a2e 100%); border: 1px solid rgba(0,229,255,0.08); border-radius: 16px; transition: all 0.15s ease; }
-.card:hover { border-color: rgba(0,229,255,0.15); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-.input { padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #e8edf8; font-size: 14px; outline: none; transition: border-color 0.15s; font-family: inherit; }
-.input:focus { border-color: rgba(0,229,255,0.4); }
-.loading { width: 36px; height: 36px; border: 3px solid rgba(0,229,255,0.1); border-top-color: #00e5ff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080810;font-family:'DM Sans','Segoe UI',system-ui,sans-serif;color:#e4e4e7;overflow-x:hidden}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+button{transition:all .15s ease;font-family:inherit;cursor:pointer}
+button:hover{filter:brightness(1.12)}button:active{transform:scale(.97)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:rgba(0,229,255,.1);border-radius:3px}
+input:focus,textarea:focus{border-color:rgba(0,229,255,.4)!important;outline:none}
+.chv:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)!important}
+.shv:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,229,255,.08)!important;border-color:rgba(0,229,255,.15)!important}
 </style>
 </head>
 <body>
-
 <div id="root">
-  <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #080810;">
-    <div class="loading"></div>
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#080810">
+    <div style="width:36px;height:36px;border:3px solid rgba(0,229,255,.15);border-top-color:#00e5ff;border-radius:50%;animation:spin .8s linear infinite"></div>
+    <span style="font-size:13px;color:#6878a0">Cargando...</span>
   </div>
 </div>
 
@@ -37,8 +36,8 @@ body { background: #080810; font-family: 'DM Sans', -apple-system, BlinkMacSyste
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
 <script>
-// Firebase Configuration
-const firebaseConfig = {
+// Firebase config
+const config = {
   apiKey: "AIzaSyAYKbbK7GqZgGKRl2-cWG8Gw8EGMYqS2HY",
   authDomain: "techstore-4eea2.firebaseapp.com",
   databaseURL: "https://techstore-4eea2-default-rtdb.firebaseio.com",
@@ -48,97 +47,112 @@ const firebaseConfig = {
   appId: "1:429953715769:web:6b3bb7d79faf577ed707e8"
 };
 
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(config);
 const db = firebase.database();
 const auth = firebase.auth();
 
-// Utility Functions
-const formatPrice = (price) => price || '—';
-const getTheme = (product) => {
+// Utility functions
+const gT = p => {
   const themes = {
-    'nuevo': { accent: '#22c55e', bg: '#f0fdf4', text: '#15803d' },
-    'último': { accent: '#f59e0b', bg: '#fefbf3', text: '#d97706' },
-    'promoción': { accent: '#ef4444', bg: '#fef2f2', text: '#dc2626' }
+    "nuevo": { accent: "#22c55e", bg: "#f0fdf4", text: "#15803d" },
+    "ultimo": { accent: "#f59e0b", bg: "#fefbf3", text: "#d97706" },
+    "default": { accent: "#6366f1", bg: "#f8fafc", text: "#475569" }
   };
-  const badge = product?.badge?.toLowerCase() || '';
-  return themes[badge] || { accent: '#00e5ff', bg: '#f8fafc', text: '#475569' };
+  return themes[p?.badge?.toLowerCase()] || themes.default;
 };
 
-// Image Compression Utility
-const compressImage = (file, maxWidth = 800, quality = 0.7) => {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    img.onload = () => {
-      const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
-      canvas.width = img.width * ratio;
-      canvas.height = img.height * ratio;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
-    
-    const reader = new FileReader();
-    reader.onload = (e) => img.src = e.target.result;
-    reader.readAsDataURL(file);
-  });
-};
+const formatPrice = p => p ? `$ ${p.toLocaleString('es-CO')}` : '—';
 
-// Empty State Component
-function Empty({ icon, title, subtitle }) {
-  return React.createElement('div', {
+// Empty state component
+function Empty({ icon, title, sub, light }) {
+  return React.createElement("div", {
     style: {
-      textAlign: 'center',
-      padding: '60px 20px',
-      color: '#8090b0'
+      textAlign: "center",
+      padding: "60px 20px",
+      color: light ? "#64748b" : "#94a3b8"
     }
-  }, [
-    React.createElement('div', { key: 'icon', style: { fontSize: 48, marginBottom: 16, opacity: 0.6 } }, icon),
-    React.createElement('h3', { key: 'title', style: { fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#a0a8b8' } }, title),
-    React.createElement('p', { key: 'subtitle', style: { fontSize: 14, lineHeight: 1.5 } }, subtitle)
-  ]);
+  },
+  React.createElement("div", {
+    style: { fontSize: 40, marginBottom: 12 }
+  }, icon),
+  React.createElement("h3", {
+    style: {
+      fontSize: 16,
+      fontWeight: 600,
+      marginBottom: 4,
+      color: light ? "#334155" : "#e2e8f0"
+    }
+  }, title),
+  React.createElement("p", {
+    style: { fontSize: 13 }
+  }, sub));
 }
 
-// Logo Component
-function Logo({ size = 50 }) {
-  return React.createElement('div', {
+// Main App component
+function App() {
+  const [user, setUser] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  
+  React.useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      setUser(user);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) return React.createElement("div", {
     style: {
-      width: size,
-      height: size,
-      borderRadius: size * 0.24,
-      background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: size * 0.36,
-      fontWeight: 900,
-      color: '#080810',
-      boxShadow: '0 0 ' + (size * 0.6) + 'px rgba(0,229,255,0.3)'
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center", 
+      justifyContent: "center",
+      background: "#080810"
     }
-  }, 'IT');
+  }, React.createElement("div", {
+    style: {
+      width: 36,
+      height: 36,
+      border: "3px solid rgba(0,229,255,.15)",
+      borderTopColor: "#00e5ff",
+      borderRadius: "50%",
+      animation: "spin .8s linear infinite"
+    }
+  }));
+
+  const route = window.location.hash;
+  
+  if (route === '#catalogo') {
+    return React.createElement(PublicCatalog);
+  }
+  
+  if (user) {
+    return React.createElement(AdminPanel, { user });
+  }
+  
+  return React.createElement(LoginScreen);
 }
 
-// Login Screen Component
+// Login Screen
 function LoginScreen() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [message, setMessage] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
     setError('');
     setMessage('');
     
     try {
       await auth.signInWithEmailAndPassword(email, password);
-    } catch (err) {
+    } catch (error) {
       setError('Credenciales incorrectas');
     }
-    setLoading(false);
+    setIsLoading(false);
   };
 
   const handleForgotPassword = async () => {
@@ -147,131 +161,167 @@ function LoginScreen() {
       return;
     }
     
-    setLoading(true);
+    setIsLoading(true);
     setError('');
     setMessage('');
     
     try {
       await auth.sendPasswordResetEmail(email);
       setMessage('Email de recuperación enviado. Revisa tu bandeja de entrada.');
-    } catch (err) {
+    } catch (error) {
       setError('Error al enviar el email. Verifica que el email sea correcto.');
     }
-    setLoading(false);
+    setIsLoading(false);
   };
 
-  return React.createElement('div', {
+  return React.createElement("div", {
     style: {
-      minHeight: '100vh',
-      background: '#080810',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '0 16px'
+      minHeight: "100vh",
+      background: "#080810",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "0 16px"
     }
-  }, React.createElement('div', {
-    className: 'card',
+  }, React.createElement("div", {
     style: {
-      padding: '40px 32px',
-      width: '100%',
+      background: "rgba(15,17,24,.9)",
+      borderRadius: 20,
+      padding: "40px 32px",
+      width: "100%",
       maxWidth: 400,
-      textAlign: 'center',
-      boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
+      textAlign: "center",
+      border: "1px solid rgba(0,229,255,.1)",
+      boxShadow: "0 20px 60px rgba(0,0,0,.4)"
     }
-  }, [
-    React.createElement(Logo, { key: 'logo', size: 80 }),
-    React.createElement('h1', {
-      key: 'title',
+  },
+  React.createElement("div", {
+    style: {
+      width: 80,
+      height: 80,
+      borderRadius: 20,
+      background: "linear-gradient(135deg,#00e5ff,#d946ef)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 24,
+      fontWeight: 900,
+      color: "#080810",
+      marginBottom: 20,
+      margin: "0 auto 20px",
+      boxShadow: "0 0 30px rgba(0,229,255,.3)"
+    }
+  }, "IT"),
+  React.createElement("h1", {
+    style: {
+      fontSize: 22,
+      fontWeight: 900,
+      marginBottom: 8
+    }
+  }, React.createElement("span", {
+    style: {
+      background: "linear-gradient(135deg,#00e5ff,#d946ef)",
+      WebkitBackgroundClip: "text", 
+      WebkitTextFillColor: "transparent"
+    }
+  }, "IscoTech.Store")),
+  React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: "#6878a0",
+      marginBottom: 28
+    }
+  }, "Inicia sesión para administrar"),
+  React.createElement("form", { onSubmit: handleLogin },
+    React.createElement("input", {
+      type: "email",
+      placeholder: "Correo electrónico",
+      value: email,
+      onChange: e => setEmail(e.target.value),
       style: {
-        fontSize: 22,
-        fontWeight: 900,
-        margin: '20px 0 8px',
-        background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent'
+        width: "100%",
+        padding: "12px 16px",
+        marginBottom: 12,
+        borderRadius: 8,
+        border: "1px solid rgba(255,255,255,.1)",
+        background: "rgba(255,255,255,.05)",
+        color: "#e8edf8",
+        fontSize: 14
       }
-    }, 'IscoTech.Store'),
-    React.createElement('p', {
-      key: 'subtitle',
-      style: { fontSize: 12, color: '#6878a0', marginBottom: 28 }
-    }, 'Inicia sesión para administrar'),
-    React.createElement('form', {
-      key: 'form',
-      onSubmit: handleSubmit
-    }, [
-      React.createElement('input', {
-        key: 'email',
-        className: 'input',
-        type: 'email',
-        placeholder: 'Correo electrónico',
-        value: email,
-        onChange: (e) => setEmail(e.target.value),
-        style: { width: '100%', marginBottom: 12 },
-        required: true
-      }),
-      React.createElement('input', {
-        key: 'password',
-        className: 'input',
-        type: 'password',
-        placeholder: 'Contraseña',
-        value: password,
-        onChange: (e) => setPassword(e.target.value),
-        style: { width: '100%', marginBottom: 16 },
-        required: true
-      }),
-      error && React.createElement('p', {
-        key: 'error',
-        style: { color: '#ef4444', fontSize: 13, marginBottom: 16, textAlign: 'center' }
-      }, error),
-      message && React.createElement('p', {
-        key: 'message',
-        style: { color: '#10b981', fontSize: 13, marginBottom: 16, textAlign: 'center' }
-      }, message),
-      React.createElement('button', {
-        key: 'submit',
-        className: 'btn',
-        type: 'submit',
-        disabled: loading,
-        style: {
-          width: '100%',
-          padding: '12px',
-          marginBottom: 12,
-          borderRadius: 8,
-          background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
-          color: '#080810',
-          fontWeight: 700,
-          fontSize: 14,
-          opacity: loading ? 0.6 : 1
-        }
-      }, loading ? 'Iniciando sesión...' : 'Iniciar sesión'),
-      React.createElement('button', {
-        key: 'forgot',
-        className: 'btn',
-        type: 'button',
-        onClick: handleForgotPassword,
-        disabled: loading,
-        style: {
-          width: '100%',
-          padding: '10px',
-          borderRadius: 6,
-          border: '1px solid rgba(0,229,255,0.3)',
-          background: 'transparent',
-          color: '#00e5ff',
-          fontSize: 13,
-          opacity: loading ? 0.6 : 1
-        }
-      }, '¿Olvidaste tu contraseña?')
-    ])
-  ]));
+    }),
+    React.createElement("input", {
+      type: "password", 
+      placeholder: "Contraseña",
+      value: password,
+      onChange: e => setPassword(e.target.value),
+      style: {
+        width: "100%",
+        padding: "12px 16px",
+        marginBottom: 20,
+        borderRadius: 8,
+        border: "1px solid rgba(255,255,255,.1)",
+        background: "rgba(255,255,255,.05)",
+        color: "#e8edf8",
+        fontSize: 14
+      }
+    }),
+    error && React.createElement("p", {
+      style: {
+        color: "#ef4444",
+        fontSize: 13,
+        marginBottom: 16
+      }
+    }, error),
+    message && React.createElement("p", {
+      style: {
+        color: "#10b981",
+        fontSize: 13,
+        marginBottom: 16,
+        textAlign: "center"
+      }
+    }, message),
+    React.createElement("button", {
+      type: "submit",
+      disabled: isLoading,
+      style: {
+        width: "100%",
+        padding: "12px",
+        borderRadius: 8,
+        border: "none",
+        background: "linear-gradient(135deg,#00e5ff,#d946ef)",
+        color: "#080810",
+        fontWeight: 700,
+        fontSize: 14,
+        cursor: isLoading ? "not-allowed" : "pointer",
+        opacity: isLoading ? 0.6 : 1,
+        marginBottom: 12
+      }
+    }, isLoading ? "Iniciando sesión..." : "Iniciar sesión"),
+    React.createElement("button", {
+      type: "button",
+      onClick: handleForgotPassword,
+      disabled: isLoading,
+      style: {
+        width: "100%",
+        padding: "10px",
+        borderRadius: 6,
+        border: "1px solid rgba(0,229,255,.3)",
+        background: "transparent",
+        color: "#00e5ff",
+        fontSize: 13,
+        cursor: isLoading ? "not-allowed" : "pointer",
+        opacity: isLoading ? 0.6 : 1
+      }
+    }, "¿Olvidaste tu contraseña?"))));
 }
 
-// Public Catalog Component
+// Public Catalog
 function PublicCatalog() {
   const [products, setProducts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState('');
   const [selected, setSelected] = React.useState(null);
-  const [imageIndex, setImageIndex] = React.useState(0);
+  const [imgIdx, setImgIdx] = React.useState(0);
 
   React.useEffect(() => {
     const timeout = setTimeout(() => {
@@ -279,12 +329,14 @@ function PublicCatalog() {
     }, 20000);
 
     const ref = db.ref('products');
-    ref.on('value', (snapshot) => {
+    ref.on('value', snapshot => {
       clearTimeout(timeout);
       const data = snapshot.val();
       if (data) {
-        const list = Object.keys(data).map(key => ({ id: key, ...data[key] }))
-          .filter(p => !p.deleted);
+        const list = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        })).filter(p => !p.deleted);
         setProducts(list);
       }
       setLoading(false);
@@ -296,285 +348,355 @@ function PublicCatalog() {
     };
   }, []);
 
-  if (loading) {
-    return React.createElement('div', {
-      style: {
-        minHeight: '100vh',
-        background: '#080810',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }
-    }, React.createElement('div', { className: 'loading' }));
-  }
+  if (loading) return React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: "#080810",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 36,
+      height: 36,
+      border: "3px solid rgba(0,229,255,.15)",
+      borderTopColor: "#00e5ff",
+      borderRadius: "50%",
+      animation: "spin .8s linear infinite"
+    }
+  }));
 
-  if (error) {
-    return React.createElement('div', {
-      style: {
-        minHeight: '100vh',
-        background: '#080810',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }
-    }, React.createElement(Empty, {
-      icon: '⚠️',
-      title: error,
-      subtitle: 'Contacta al vendedor'
-    }));
-  }
+  if (error) return React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: "#080810",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, React.createElement(Empty, {
+    icon: "⚠️",
+    title: error,
+    sub: "Contacta al vendedor"
+  }));
 
-  const product = selected ? products.find(p => p.id === selected) : null;
-  const theme = product ? getTheme(product) : null;
+  const p = selected ? products.find(x => x.id === selected) : null;
+  const t = p ? gT(p) : null;
 
-  return React.createElement('div', {
-    style: { minHeight: '100vh', background: '#080810' }
-  }, React.createElement('div', {
-    style: { maxWidth: 940, margin: '0 auto', padding: '0 16px 40px' }
-  }, [
-    // Header
-    React.createElement('div', {
-      key: 'header',
+  return React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: "#080810", 
+      color: "#e8edf8"
+    }
+  }, React.createElement("div", {
+    style: {
+      maxWidth: 940,
+      margin: "0 auto",
+      padding: "0 16px 40px"
+    }
+  },
+  // Header with optimized logo
+  React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: "40px 20px 32px",
+      marginBottom: 28,
+      position: "relative",
+      background: "linear-gradient(180deg,#0a0e1a 0%,#080810 100%)",
+      borderBottom: "1px solid rgba(0,229,255,.1)"
+    }
+  },
+  React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: "10%",
+      left: "50%", 
+      transform: "translateX(-50%)",
+      width: 350,
+      height: 350,
+      background: "radial-gradient(circle,rgba(0,229,255,.1) 0%,rgba(217,70,239,.04) 40%,transparent 70%)",
+      pointerEvents: "none"
+    }
+  }),
+  React.createElement("img", {
+    src: "Logo%20Fnal.png",
+    alt: "IscoTech.Store",
+    style: {
+      width: 240,
+      height: 240,
+      objectFit: "contain", 
+      marginBottom: 16,
+      position: "relative",
+      filter: "drop-shadow(0 0 30px rgba(0,229,255,.35)) drop-shadow(0 0 60px rgba(217,70,239,.15))"
+    }
+  }),
+  React.createElement("h1", {
+    style: {
+      fontSize: 30,
+      fontWeight: 900,
+      letterSpacing: "-.03em",
+      margin: 0,
+      position: "relative"
+    }
+  }, React.createElement("span", {
+    style: {
+      background: "linear-gradient(135deg,#00e5ff,#d946ef)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent"
+    }
+  }, "IscoTech.Store")),
+  React.createElement("p", {
+    style: {
+      fontSize: 13,
+      color: "#6878a0",
+      marginTop: 6,
+      position: "relative"
+    }
+  }, `${products.length} producto${products.length !== 1 ? 's' : ''} disponible${products.length !== 1 ? 's' : ''}`)),
+
+  // Product detail view
+  selected && p ? React.createElement("div", {
+    style: { animation: "fadeIn .3s ease" }
+  },
+  React.createElement("button", {
+    onClick: () => { setSelected(null); setImgIdx(0); },
+    style: {
+      marginBottom: 16,
+      padding: "8px 16px",
+      borderRadius: 8,
+      border: "1px solid rgba(0,229,255,.15)",
+      background: "rgba(0,229,255,.05)",
+      color: "#00e5ff",
+      fontSize: 13,
+      cursor: "pointer"
+    }
+  }, "← Volver"),
+  React.createElement("div", {
+    style: {
+      background: "#0f1118",
+      borderRadius: 16,
+      overflow: "hidden",
+      boxShadow: "0 4px 24px rgba(0,0,0,.3)",
+      border: "1px solid rgba(0,229,255,.08)"
+    }
+  },
+  React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 24,
+      padding: 24
+    }
+  },
+  // Images
+  React.createElement("div", null,
+    p.photos?.length > 0 && React.createElement("img", {
+      src: p.photos[imgIdx],
       style: {
-        textAlign: 'center',
-        padding: '40px 20px 32px',
-        marginBottom: 28,
-        background: 'linear-gradient(180deg, #0a0e1a 0%, #080810 100%)',
-        borderBottom: '1px solid rgba(0,229,255,0.1)',
-        borderRadius: '0 0 16px 16px'
+        width: "100%",
+        height: 280,
+        objectFit: "cover",
+        borderRadius: 12,
+        marginBottom: 12
       }
-    }, [
-      React.createElement(Logo, { key: 'logo', size: 120 }),
-      React.createElement('h1', {
-        key: 'title',
+    }),
+    p.photos?.length > 1 && React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 6,
+        overflowX: "auto"
+      }
+    }, p.photos.map((photo, i) =>
+      React.createElement("img", {
+        key: i,
+        src: photo,
+        onClick: () => setImgIdx(i),
         style: {
-          fontSize: 30,
-          fontWeight: 900,
-          margin: '16px 0 0',
-          background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
+          width: 60,
+          height: 60,
+          objectFit: "cover",
+          borderRadius: 6,
+          cursor: "pointer",
+          border: imgIdx === i ? "2px solid #00e5ff" : "1px solid rgba(255,255,255,.1)",
+          flexShrink: 0
         }
-      }, 'IscoTech.Store'),
-      React.createElement('p', {
-        key: 'count',
-        style: { fontSize: 13, color: '#6878a0', marginTop: 6 }
-      }, products.length + ' producto' + (products.length !== 1 ? 's' : '') + ' disponible' + (products.length !== 1 ? 's' : ''))
-    ]),
-
-    // Product Detail
-    selected && product ? React.createElement('div', {
-      key: 'detail',
-      style: { animation: 'fadeIn 0.3s ease', marginBottom: 24 }
-    }, [
-      React.createElement('button', {
-        key: 'back',
-        className: 'btn',
-        onClick: () => { setSelected(null); setImageIndex(0); },
-        style: {
-          marginBottom: 16,
-          padding: '8px 16px',
-          borderRadius: 8,
-          border: '1px solid rgba(0,229,255,0.15)',
-          background: 'rgba(0,229,255,0.05)',
-          color: '#00e5ff',
-          fontSize: 13
-        }
-      }, '← Volver'),
-      React.createElement('div', {
-        key: 'card',
-        className: 'card',
-        style: { overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }
-      }, React.createElement('div', {
-        style: {
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 24,
-          padding: 24
-        }
-      }, [
-        // Images
-        React.createElement('div', { key: 'images' }, [
-          product.photos?.[0] && React.createElement('img', {
-            key: 'main',
-            src: product.photos[imageIndex],
-            style: {
-              width: '100%',
-              height: 280,
-              objectFit: 'cover',
-              borderRadius: 12,
-              marginBottom: 12
-            },
-            loading: 'lazy'
-          }),
-          product.photos?.length > 1 && React.createElement('div', {
-            key: 'thumbs',
-            style: { display: 'flex', gap: 6, overflowX: 'auto' }
-          }, product.photos.map((photo, i) =>
-            React.createElement('img', {
-              key: i,
-              src: photo,
-              onClick: () => setImageIndex(i),
-              style: {
-                width: 60,
-                height: 60,
-                objectFit: 'cover',
-                borderRadius: 6,
-                cursor: 'pointer',
-                border: imageIndex === i ? '2px solid #00e5ff' : '1px solid rgba(255,255,255,0.1)',
-                flexShrink: 0
-              },
-              loading: 'lazy'
-            })
-          ))
-        ]),
-        // Details
-        React.createElement('div', { key: 'details' }, [
-          product.badge && React.createElement('span', {
-            key: 'badge',
-            style: {
-              display: 'inline-block',
-              padding: '4px 8px',
-              borderRadius: 4,
-              fontSize: 10,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              background: theme.accent,
-              color: '#080810',
-              marginBottom: 12
-            }
-          }, product.badge),
-          React.createElement('h2', {
-            key: 'name',
-            style: { fontSize: 24, fontWeight: 800, marginBottom: 8, color: '#eef0f6' }
-          }, product.name),
-          React.createElement('div', {
-            key: 'price',
-            style: { display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16 }
-          }, [
-            React.createElement('span', {
-              key: 'current',
-              style: { fontSize: 28, fontWeight: 900, color: '#00e5ff' }
-            }, product.price),
-            product.oldPrice && React.createElement('span', {
-              key: 'old',
-              style: { fontSize: 16, color: '#6878a0', textDecoration: 'line-through' }
-            }, product.oldPrice)
-          ]),
-          product.description && React.createElement('p', {
-            key: 'description',
-            style: { fontSize: 14, lineHeight: 1.6, color: '#8090b0', marginBottom: 16 }
-          }, product.description),
-          product.specs?.length > 0 && React.createElement('div', {
-            key: 'specs',
-            style: { display: 'flex', flexWrap: 'wrap', gap: 6 }
-          }, product.specs.map((spec, i) =>
-            React.createElement('span', {
-              key: i,
-              style: {
-                padding: '4px 8px',
-                borderRadius: 4,
-                fontSize: 11,
-                background: 'rgba(0,229,255,0.06)',
-                color: '#6878a0'
-              }
-            }, spec)
-          ))
-        ])
-      ]))
-    ]) : null,
-
-    // Products Grid
-    React.createElement('div', {
-      key: 'grid',
+      })
+    ))),
+  // Details  
+  React.createElement("div", null,
+    p.badge && React.createElement("span", {
       style: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: 20
+        display: "inline-block",
+        padding: "4px 8px",
+        borderRadius: 4,
+        fontSize: 10,
+        fontWeight: 600,
+        textTransform: "uppercase",
+        background: t.accent,
+        color: "#080810",
+        marginBottom: 12
       }
-    }, products.length > 0 ? products.map(p => {
-      const th = getTheme(p);
-      return React.createElement('div', {
-        key: p.id,
-        className: 'card',
-        onClick: () => setSelected(p.id),
-        style: { cursor: 'pointer', position: 'relative' }
-      }, [
-        p.photos?.[0] && React.createElement('img', {
-          key: 'image',
-          src: p.photos[0],
-          style: { width: '100%', height: 180, objectFit: 'cover' },
-          loading: 'lazy'
-        }),
-        p.badge && React.createElement('div', {
-          key: 'badge',
-          style: {
-            position: 'absolute',
-            top: 8,
-            left: 8,
-            padding: '2px 6px',
-            borderRadius: 4,
-            fontSize: 9,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            background: th.accent,
-            color: '#080810'
-          }
-        }, p.badge),
-        p.photos?.length > 1 && React.createElement('div', {
-          key: 'count',
-          style: {
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            background: 'rgba(0,0,0,0.7)',
-            color: '#fff',
-            padding: '2px 6px',
-            borderRadius: 4,
-            fontSize: 9
-          }
-        }, p.photos.length + ' fotos'),
-        React.createElement('div', {
-          key: 'content',
-          style: { padding: '12px 14px' }
-        }, [
-          React.createElement('h3', {
-            key: 'name',
-            style: {
-              margin: 0,
-              fontSize: 13,
-              fontWeight: 700,
-              color: '#e8edf8',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }
-          }, p.name || 'Sin nombre'),
-          React.createElement('div', {
-            key: 'price',
-            style: { display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 3 }
-          }, [
-            React.createElement('span', {
-              key: 'current',
-              style: { fontSize: 16, fontWeight: 800, color: th.accent }
-            }, p.price || '—'),
-            p.oldPrice && React.createElement('span', {
-              key: 'old',
-              style: { fontSize: 10, color: '#6878a0', textDecoration: 'line-through' }
-            }, p.oldPrice)
-          ])
-        ])
-      ]);
-    }) : [React.createElement(Empty, {
-      key: 'empty',
-      icon: '📦',
-      title: 'Sin productos',
-      subtitle: 'Pronto agregaremos productos al catálogo'
-    })])
-  ]));
+    }, p.badge),
+    React.createElement("h2", {
+      style: {
+        fontSize: 24,
+        fontWeight: 800,
+        marginBottom: 8,
+        color: "#eef0f6"
+      }
+    }, p.name),
+    React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "baseline",
+        gap: 8,
+        marginBottom: 16
+      }
+    },
+    React.createElement("span", {
+      style: {
+        fontSize: 28,
+        fontWeight: 900,
+        color: "#00e5ff"
+      }
+    }, p.price),
+    p.oldPrice && React.createElement("span", {
+      style: {
+        fontSize: 16,
+        color: "#6878a0",
+        textDecoration: "line-through"
+      }
+    }, p.oldPrice)),
+    React.createElement("p", {
+      style: {
+        fontSize: 14,
+        lineHeight: 1.6,
+        color: "#8090b0",
+        marginBottom: 16
+      }
+    }, p.description),
+    p.specs?.length > 0 && React.createElement("div", {
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 6
+      }
+    }, p.specs.map((spec, i) =>
+      React.createElement("span", {
+        key: i,
+        style: {
+          padding: "4px 8px",
+          borderRadius: 4,
+          fontSize: 11,
+          background: "rgba(0,229,255,.06)",
+          color: "#6878a0"
+        }
+      }, spec)
+    )))))) :
+
+  // Product grid
+  React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+      gap: 20
+    }
+  }, products.map(p => {
+    const th = gT(p);
+    return React.createElement("div", {
+      key: p.id,
+      onClick: () => setSelected(p.id),
+      className: "shv",
+      style: {
+        borderRadius: 14,
+        overflow: "hidden",
+        background: "#0f1118",
+        border: "1px solid rgba(0,229,255,.06)",
+        cursor: "pointer",
+        boxShadow: "0 2px 12px rgba(0,0,0,.2)",
+        transition: "all .15s ease"
+      }
+    },
+    p.photos?.[0] && React.createElement("img", {
+      src: p.photos[0],
+      style: {
+        width: "100%",
+        height: 180,
+        objectFit: "cover"
+      }
+    }),
+    p.badge && React.createElement("div", {
+      style: {
+        position: "absolute",
+        top: 8,
+        left: 8,
+        padding: "2px 6px",
+        borderRadius: 4,
+        fontSize: 9,
+        fontWeight: 600,
+        textTransform: "uppercase",
+        background: th.accent,
+        color: "#080810"
+      }
+    }, p.badge),
+    p.photos?.length > 1 && React.createElement("div", {
+      style: {
+        position: "absolute",
+        top: 8,
+        right: 8,
+        background: "rgba(0,0,0,.7)",
+        color: "#fff",
+        padding: "2px 6px",
+        borderRadius: 4,
+        fontSize: 9
+      }
+    }, `${p.photos.length} fotos`),
+    React.createElement("div", {
+      style: { padding: "12px 14px" }
+    }, React.createElement("h3", {
+      style: {
+        margin: 0,
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#e8edf8",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+      }
+    }, p.name || "Sin nombre"),
+    React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "baseline",
+        gap: 6,
+        marginTop: 3
+      }
+    }, React.createElement("span", {
+      style: {
+        fontSize: 16,
+        fontWeight: 800,
+        color: th.accent
+      }
+    }, p.price || "—"),
+    p.oldPrice && React.createElement("span", {
+      style: {
+        fontSize: 10,
+        color: "#94a3b8",
+        textDecoration: "line-through"
+      }
+    }, p.oldPrice))));
+  })),
+
+  products.length === 0 && React.createElement(Empty, {
+    icon: "📦",
+    title: "Sin productos",
+    sub: "Pronto agregaremos productos al catálogo"
+  })));
 }
 
-// Admin Panel Component
+// Admin Panel with professional design and optimized performance
 function AdminPanel({ user }) {
   const [products, setProducts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -592,11 +714,13 @@ function AdminPanel({ user }) {
 
   React.useEffect(() => {
     const ref = db.ref('products');
-    ref.on('value', (snapshot) => {
+    ref.on('value', snapshot => {
       const data = snapshot.val();
       if (data) {
-        const list = Object.keys(data).map(key => ({ id: key, ...data[key] }))
-          .filter(p => !p.deleted);
+        const list = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        })).filter(p => !p.deleted);
         setProducts(list);
       }
       setLoading(false);
@@ -604,8 +728,20 @@ function AdminPanel({ user }) {
     return () => ref.off();
   }, []);
 
+  const handleSignOut = () => {
+    auth.signOut();
+  };
+
   const resetForm = () => {
-    setFormData({ name: '', price: '', oldPrice: '', description: '', badge: '', specs: '', photos: [] });
+    setFormData({
+      name: '',
+      price: '',
+      oldPrice: '',
+      description: '',
+      badge: '',
+      specs: '',
+      photos: []
+    });
     setEditingId(null);
     setShowForm(false);
   };
@@ -626,18 +762,22 @@ function AdminPanel({ user }) {
 
   const handleDelete = async (id) => {
     if (confirm('¿Eliminar este producto?')) {
-      await db.ref('products/' + id).update({ deleted: true });
+      await db.ref(`products/${id}`).update({ deleted: true });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const specs = formData.specs ? formData.specs.split(',').map(s => s.trim()).filter(s => s) : [];
-    const productData = { ...formData, specs, updatedAt: Date.now() };
+    const productData = {
+      ...formData,
+      specs,
+      updatedAt: Date.now()
+    };
 
     try {
       if (editingId) {
-        await db.ref('products/' + editingId).update(productData);
+        await db.ref(`products/${editingId}`).update(productData);
       } else {
         await db.ref('products').push(productData);
       }
@@ -647,516 +787,574 @@ function AdminPanel({ user }) {
     }
   };
 
-  const handlePhotoUpload = async (e) => {
+  const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      try {
-        const compressed = await compressImage(file);
-        setFormData(prev => ({ ...prev, photos: [...prev.photos, compressed] }));
-      } catch (error) {
-        alert('Error al procesar imagen');
-      }
+      // Compress image before uploading
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = function() {
+        // Resize to max 800px width maintaining aspect ratio
+        const maxWidth = 800;
+        const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
+        
+        // Draw and compress (0.7 quality = 30% compression)
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        
+        setFormData(prev => ({
+          ...prev,
+          photos: [...prev.photos, compressedDataUrl]
+        }));
+      };
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  if (loading) {
-    return React.createElement('div', {
+  const removePhoto = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
+  };
+
+  if (loading) return React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: "#080810",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      border: "3px solid rgba(0,229,255,.1)",
+      borderTopColor: "#00e5ff",
+      borderRadius: "50%",
+      animation: "spin .8s linear infinite"
+    }
+  }));
+
+  return React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: "#080810",
+      color: "#e8edf8"
+    }
+  }, React.createElement("div", {
+    style: {
+      maxWidth: 1400,
+      margin: "0 auto",
+      padding: "20px"
+    }
+  }, 
+  // Modern Header with gradient
+  React.createElement("div", {
+    style: {
+      background: "linear-gradient(135deg, #0a0e1a 0%, #1a1a2e 100%)",
+      borderRadius: 16,
+      padding: "20px 24px",
+      marginBottom: 24,
+      border: "1px solid rgba(0,229,255,.1)",
+      position: "relative",
+      overflow: "hidden"
+    }
+  }, 
+  // Subtle glow effect
+  React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      width: 200,
+      height: 200,
+      background: "radial-gradient(circle, rgba(0,229,255,.04) 0%, transparent 70%)",
+      pointerEvents: "none"
+    }
+  }),
+  React.createElement("div", {
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 16,
+      position: "relative"
+    }
+  }, React.createElement("div", {
+    style: { display: "flex", alignItems: "center", gap: 16 }
+  }, React.createElement("div", {
+    style: {
+      width: 60,
+      height: 60,
+      borderRadius: 16,
+      background: "linear-gradient(135deg,#0c0c18,#1a0a20)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      boxShadow: "0 0 30px rgba(0,229,255,.2), 0 8px 30px rgba(0,0,0,.3)",
+      border: "1px solid rgba(0,229,255,.1)"
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 50,
+      height: 50,
+      borderRadius: 12,
+      background: "linear-gradient(135deg,#00e5ff,#d946ef)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 18,
+      fontWeight: 900,
+      color: "#080810"
+    }
+  }, "IT")), React.createElement("div", null, React.createElement("h1", {
+    style: {
+      margin: 0,
+      fontSize: 28,
+      fontWeight: 900,
+      letterSpacing: "-.03em"
+    }
+  }, React.createElement("span", {
+    style: {
+      background: "linear-gradient(135deg,#00e5ff,#d946ef)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent"
+    }
+  }, "IscoTech.Store"), React.createElement("span", {
+    style: {
+      fontSize: 14,
+      fontWeight: 500,
+      color: "#6878a0",
+      marginLeft: 12
+    }
+  }, "Panel de Control")), React.createElement("div", {
+    style: {
+      display: "flex", 
+      alignItems: "center",
+      gap: 16,
+      marginTop: 6
+    }
+  }, React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "4px 12px",
+      background: "rgba(0,229,255,.1)",
+      borderRadius: 20,
+      border: "1px solid rgba(0,229,255,.2)"
+    }
+  }, React.createElement("div", {
+    style: {
+      width: 6,
+      height: 6,
+      borderRadius: "50%",
+      background: "#00e5ff"
+    }
+  }), React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#00e5ff",
+      fontWeight: 600
+    }
+  }, `${products.length} productos`)), React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#8090b0"
+    }
+  }, `Conectado como ${user.email}`)))), React.createElement("div", {
+    style: { display: "flex", gap: 12 }
+  }, React.createElement("button", {
+    onClick: () => setShowForm(!showForm),
+    style: {
+      padding: "12px 20px",
+      borderRadius: 10,
+      border: "none",
+      background: showForm ? "rgba(239,68,68,.9)" : "linear-gradient(135deg,#00e5ff,#d946ef)",
+      color: "#080810",
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer",
+      transition: "all .15s",
+      boxShadow: "0 4px 15px rgba(0,0,0,.2)"
+    }
+  }, showForm ? "✕ Cancelar" : "+ Nuevo Producto"), React.createElement("button", {
+    onClick: handleSignOut,
+    style: {
+      padding: "12px 20px",
+      borderRadius: 10,
+      border: "1px solid rgba(255,255,255,.1)",
+      background: "rgba(255,255,255,.05)",
+      color: "#a0a8b8",
+      fontSize: 14,
+      fontWeight: 500,
+      cursor: "pointer",
+      transition: "all .15s"
+    }
+  }, "Salir")))),
+
+  // Modern Form
+  showForm && React.createElement("div", {
+    style: {
+      background: "linear-gradient(135deg, #0f1118 0%, #1a1a2e 100%)",
+      borderRadius: 16,
+      padding: 24,
+      marginBottom: 24,
+      border: "1px solid rgba(0,229,255,.1)",
+      boxShadow: "0 8px 32px rgba(0,0,0,.3)"
+    }
+  }, React.createElement("h3", {
+    style: {
+      margin: "0 0 20px",
+      fontSize: 18,
+      fontWeight: 700,
+      color: "#eef0f6"
+    }
+  }, editingId ? "✏️ Editar Producto" : "✨ Nuevo Producto"), React.createElement("form", {
+    onSubmit: handleSubmit
+  }, React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+      gap: 16,
+      marginBottom: 16
+    }
+  }, React.createElement("input", {
+    type: "text",
+    placeholder: "Nombre del producto",
+    value: formData.name,
+    onChange: e => setFormData(prev => ({ ...prev, name: e.target.value })),
+    style: {
+      padding: "12px 16px",
+      borderRadius: 8,
+      border: "1px solid rgba(255,255,255,.1)",
+      background: "rgba(255,255,255,.05)",
+      color: "#e8edf8",
+      fontSize: 14,
+      outline: "none",
+      transition: "border-color .15s"
+    },
+    required: true
+  }), React.createElement("input", {
+    type: "text",
+    placeholder: "Precio (ej: $ 1.500.000)",
+    value: formData.price,
+    onChange: e => setFormData(prev => ({ ...prev, price: e.target.value })),
+    style: {
+      padding: "12px 16px",
+      borderRadius: 8,
+      border: "1px solid rgba(255,255,255,.1)",
+      background: "rgba(255,255,255,.05)",
+      color: "#e8edf8",
+      fontSize: 14,
+      outline: "none",
+      transition: "border-color .15s"
+    }
+  })), React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+      gap: 16,
+      marginBottom: 16
+    }
+  }, React.createElement("input", {
+    type: "text",
+    placeholder: "Precio anterior (opcional)",
+    value: formData.oldPrice,
+    onChange: e => setFormData(prev => ({ ...prev, oldPrice: e.target.value })),
+    style: {
+      padding: "12px 16px",
+      borderRadius: 8,
+      border: "1px solid rgba(255,255,255,.1)",
+      background: "rgba(255,255,255,.05)",
+      color: "#e8edf8",
+      fontSize: 14,
+      outline: "none"
+    }
+  }), React.createElement("select", {
+    value: formData.badge,
+    onChange: e => setFormData(prev => ({ ...prev, badge: e.target.value })),
+    style: {
+      padding: "12px 16px",
+      borderRadius: 8,
+      border: "1px solid rgba(255,255,255,.1)",
+      background: "rgba(255,255,255,.05)",
+      color: "#e8edf8",
+      fontSize: 14,
+      outline: "none"
+    }
+  }, React.createElement("option", { value: "" }, "Sin etiqueta"), React.createElement("option", { value: "NUEVO" }, "NUEVO"), React.createElement("option", { value: "ÚLTIMO" }, "ÚLTIMO"), React.createElement("option", { value: "PROMOCIÓN" }, "PROMOCIÓN"))), React.createElement("textarea", {
+    placeholder: "Descripción del producto",
+    value: formData.description,
+    onChange: e => setFormData(prev => ({ ...prev, description: e.target.value })),
+    style: {
+      padding: "12px 16px",
+      borderRadius: 8,
+      border: "1px solid rgba(255,255,255,.1)",
+      background: "rgba(255,255,255,.05)",
+      color: "#e8edf8",
+      fontSize: 14,
+      minHeight: 80,
+      width: "100%",
+      marginBottom: 16,
+      resize: "vertical",
+      outline: "none",
+      fontFamily: "inherit"
+    }
+  }), React.createElement("input", {
+    type: "text",
+    placeholder: "Especificaciones (separadas por comas)",
+    value: formData.specs,
+    onChange: e => setFormData(prev => ({ ...prev, specs: e.target.value })),
+    style: {
+      padding: "12px 16px",
+      borderRadius: 8,
+      border: "1px solid rgba(255,255,255,.1)",
+      background: "rgba(255,255,255,.05)",
+      color: "#e8edf8",
+      fontSize: 14,
+      width: "100%",
+      marginBottom: 16,
+      outline: "none"
+    }
+  }), React.createElement("div", {
+    style: { marginBottom: 20 }
+  }, React.createElement("label", {
+    style: {
+      display: "block",
+      marginBottom: 12,
+      fontSize: 14,
+      fontWeight: 600,
+      color: "#a0a8b8"
+    }
+  }, "📸 Fotos del producto:"), React.createElement("input", {
+    type: "file",
+    accept: "image/*",
+    onChange: handlePhotoUpload,
+    style: {
+      marginBottom: 12,
+      color: "#8090b0",
+      fontSize: 14
+    }
+  }), formData.photos.length > 0 && React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(80px, 1fr))",
+      gap: 12,
+      maxWidth: 400
+    }
+  }, formData.photos.map((photo, i) =>
+    React.createElement("div", {
+      key: i,
+      style: { position: "relative" }
+    }, React.createElement("img", {
+      src: photo,
       style: {
-        minHeight: '100vh',
-        background: '#080810',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
+        width: "100%",
+        height: 80,
+        objectFit: "cover",
+        borderRadius: 8,
+        border: "1px solid rgba(0,229,255,.2)"
       }
-    }, React.createElement('div', { className: 'loading' }));
-  }
-
-  return React.createElement('div', {
-    style: { minHeight: '100vh', background: '#080810' }
-  }, React.createElement('div', {
-    style: { maxWidth: 1400, margin: '0 auto', padding: '20px' }
-  }, [
-    // Header
-    React.createElement('div', {
-      key: 'header',
-      className: 'card',
+    }), React.createElement("button", {
+      type: "button",
+      onClick: () => removePhoto(i),
       style: {
-        padding: '20px 24px',
-        marginBottom: 24,
-        position: 'relative',
-        overflow: 'hidden'
+        position: "absolute",
+        top: -8,
+        right: -8,
+        width: 20,
+        height: 20,
+        borderRadius: "50%",
+        background: "#ef4444",
+        color: "#fff",
+        border: "none",
+        fontSize: 12,
+        cursor: "pointer",
+        boxShadow: "0 2px 8px rgba(0,0,0,.3)"
       }
-    }, [
-      React.createElement('div', {
-        key: 'glow',
-        style: {
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: 200,
-          height: 200,
-          background: 'radial-gradient(circle, rgba(0,229,255,0.04) 0%, transparent 70%)',
-          pointerEvents: 'none'
-        }
-      }),
-      React.createElement('div', {
-        key: 'content',
-        style: {
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16,
-          position: 'relative'
-        }
-      }, [
-        React.createElement('div', {
-          key: 'left',
-          style: { display: 'flex', alignItems: 'center', gap: 16 }
-        }, [
-          React.createElement(Logo, { key: 'logo', size: 60 }),
-          React.createElement('div', { key: 'info' }, [
-            React.createElement('h1', {
-              key: 'title',
-              style: {
-                margin: 0,
-                fontSize: 28,
-                fontWeight: 900,
-                background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }
-            }, 'IscoTech.Store'),
-            React.createElement('div', {
-              key: 'details',
-              style: { display: 'flex', alignItems: 'center', gap: 16, marginTop: 6 }
-            }, [
-              React.createElement('div', {
-                key: 'count',
-                style: {
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '4px 12px',
-                  background: 'rgba(0,229,255,0.1)',
-                  borderRadius: 20,
-                  border: '1px solid rgba(0,229,255,0.2)'
-                }
-              }, [
-                React.createElement('div', {
-                  key: 'dot',
-                  style: { width: 6, height: 6, borderRadius: '50%', background: '#00e5ff' }
-                }),
-                React.createElement('span', {
-                  key: 'text',
-                  style: { fontSize: 12, color: '#00e5ff', fontWeight: 600 }
-                }, products.length + ' productos')
-              ]),
-              React.createElement('span', {
-                key: 'user',
-                style: { fontSize: 12, color: '#8090b0' }
-              }, 'Admin • ' + user.email)
-            ])
-          ])
-        ]),
-        React.createElement('div', {
-          key: 'right',
-          style: { display: 'flex', gap: 12 }
-        }, [
-          React.createElement('button', {
-            key: 'new',
-            className: 'btn',
-            onClick: () => setShowForm(!showForm),
-            style: {
-              padding: '12px 20px',
-              borderRadius: 10,
-              background: showForm ? 'rgba(239,68,68,0.9)' : 'linear-gradient(135deg, #00e5ff, #d946ef)',
-              color: '#080810',
-              fontSize: 14,
-              fontWeight: 700,
-              boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-            }
-          }, showForm ? '✕ Cancelar' : '+ Nuevo Producto'),
-          React.createElement('button', {
-            key: 'logout',
-            className: 'btn',
-            onClick: () => auth.signOut(),
-            style: {
-              padding: '12px 20px',
-              borderRadius: 10,
-              border: '1px solid rgba(255,255,255,0.1)',
-              background: 'rgba(255,255,255,0.05)',
-              color: '#a0a8b8',
-              fontSize: 14,
-              fontWeight: 500
-            }
-          }, 'Salir')
-        ])
-      ])
-    ]),
+    }, "×"))))), React.createElement("div", {
+    style: { display: "flex", gap: 12 }
+  }, React.createElement("button", {
+    type: "submit",
+    style: {
+      padding: "12px 24px",
+      borderRadius: 8,
+      border: "none",
+      background: "linear-gradient(135deg,#10b981,#059669)",
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer",
+      boxShadow: "0 4px 15px rgba(16,185,129,.3)"
+    }
+  }, editingId ? "💾 Actualizar" : "✨ Crear Producto"), React.createElement("button", {
+    type: "button",
+    onClick: resetForm,
+    style: {
+      padding: "12px 24px",
+      borderRadius: 8,
+      border: "1px solid rgba(255,255,255,.1)",
+      background: "rgba(255,255,255,.05)",
+      color: "#a0a8b8",
+      fontSize: 14,
+      fontWeight: 500,
+      cursor: "pointer"
+    }
+  }, "Cancelar")))),
 
-    // Form
-    showForm && React.createElement('div', {
-      key: 'form',
-      className: 'card',
-      style: { padding: 24, marginBottom: 24, boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }
-    }, React.createElement('form', {
-      onSubmit: handleSubmit
-    }, [
-      React.createElement('h3', {
-        key: 'title',
-        style: { margin: '0 0 20px', fontSize: 18, fontWeight: 700, color: '#eef0f6' }
-      }, (editingId ? '✏️ Editar' : '✨ Nuevo') + ' Producto'),
-      React.createElement('div', {
-        key: 'grid1',
-        style: {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 16,
-          marginBottom: 16
-        }
-      }, [
-        React.createElement('input', {
-          key: 'name',
-          className: 'input',
-          type: 'text',
-          placeholder: 'Nombre del producto',
-          value: formData.name,
-          onChange: (e) => setFormData(prev => ({ ...prev, name: e.target.value })),
-          required: true
-        }),
-        React.createElement('input', {
-          key: 'price',
-          className: 'input',
-          type: 'text',
-          placeholder: 'Precio (ej: $ 1.500.000)',
-          value: formData.price,
-          onChange: (e) => setFormData(prev => ({ ...prev, price: e.target.value }))
-        })
-      ]),
-      React.createElement('div', {
-        key: 'grid2',
-        style: {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: 16,
-          marginBottom: 16
-        }
-      }, [
-        React.createElement('input', {
-          key: 'oldprice',
-          className: 'input',
-          type: 'text',
-          placeholder: 'Precio anterior (opcional)',
-          value: formData.oldPrice,
-          onChange: (e) => setFormData(prev => ({ ...prev, oldPrice: e.target.value }))
-        }),
-        React.createElement('select', {
-          key: 'badge',
-          className: 'input',
-          value: formData.badge,
-          onChange: (e) => setFormData(prev => ({ ...prev, badge: e.target.value }))
-        }, [
-          React.createElement('option', { key: 'none', value: '' }, 'Sin etiqueta'),
-          React.createElement('option', { key: 'new', value: 'NUEVO' }, 'NUEVO'),
-          React.createElement('option', { key: 'last', value: 'ÚLTIMO' }, 'ÚLTIMO'),
-          React.createElement('option', { key: 'promo', value: 'PROMOCIÓN' }, 'PROMOCIÓN')
-        ])
-      ]),
-      React.createElement('textarea', {
-        key: 'description',
-        className: 'input',
-        placeholder: 'Descripción del producto',
-        value: formData.description,
-        onChange: (e) => setFormData(prev => ({ ...prev, description: e.target.value })),
-        style: { width: '100%', minHeight: 80, marginBottom: 16, resize: 'vertical' }
-      }),
-      React.createElement('input', {
-        key: 'specs',
-        className: 'input',
-        type: 'text',
-        placeholder: 'Especificaciones (separadas por comas)',
-        value: formData.specs,
-        onChange: (e) => setFormData(prev => ({ ...prev, specs: e.target.value })),
-        style: { width: '100%', marginBottom: 16 }
-      }),
-      React.createElement('div', {
-        key: 'photos',
-        style: { marginBottom: 20 }
-      }, [
-        React.createElement('label', {
-          key: 'label',
-          style: { display: 'block', marginBottom: 12, fontSize: 14, fontWeight: 600, color: '#a0a8b8' }
-        }, '📸 Fotos del producto:'),
-        React.createElement('input', {
-          key: 'upload',
-          type: 'file',
-          accept: 'image/*',
-          onChange: handlePhotoUpload,
-          style: { marginBottom: 12, color: '#8090b0', fontSize: 14 }
-        }),
-        formData.photos.length > 0 && React.createElement('div', {
-          key: 'grid',
-          style: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-            gap: 12,
-            maxWidth: 400
-          }
-        }, formData.photos.map((photo, i) =>
-          React.createElement('div', {
-            key: i,
-            style: { position: 'relative' }
-          }, [
-            React.createElement('img', {
-              key: 'img',
-              src: photo,
-              style: {
-                width: '100%',
-                height: 80,
-                objectFit: 'cover',
-                borderRadius: 8,
-                border: '1px solid rgba(0,229,255,0.2)'
-              }
-            }),
-            React.createElement('button', {
-              key: 'remove',
-              type: 'button',
-              onClick: () => setFormData(prev => ({ ...prev, photos: prev.photos.filter((_, idx) => idx !== i) })),
-              style: {
-                position: 'absolute',
-                top: -8,
-                right: -8,
-                width: 20,
-                height: 20,
-                borderRadius: '50%',
-                background: '#ef4444',
-                color: '#fff',
-                border: 'none',
-                fontSize: 12,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
-              }
-            }, '×')
-          ])
-        ))
-      ]),
-      React.createElement('div', {
-        key: 'buttons',
-        style: { display: 'flex', gap: 12 }
-      }, [
-        React.createElement('button', {
-          key: 'submit',
-          className: 'btn',
-          type: 'submit',
-          style: {
-            padding: '12px 24px',
-            borderRadius: 8,
-            background: 'linear-gradient(135deg, #10b981, #059669)',
-            color: '#fff',
-            fontSize: 14,
-            fontWeight: 700,
-            boxShadow: '0 4px 15px rgba(16,185,129,0.3)'
-          }
-        }, (editingId ? '💾 Actualizar' : '✨ Crear') + ' Producto'),
-        React.createElement('button', {
-          key: 'cancel',
-          className: 'btn',
-          type: 'button',
-          onClick: resetForm,
-          style: {
-            padding: '12px 24px',
-            borderRadius: 8,
-            border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.05)',
-            color: '#a0a8b8',
-            fontSize: 14,
-            fontWeight: 500
-          }
-        }, 'Cancelar')
-      ])
-    ])),
-
-    // Products Grid
-    products.length > 0 ? React.createElement('div', {
-      key: 'products',
+  // Professional Products Grid
+  products.length > 0 ? React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+      gap: 20
+    }
+  }, products.map(p =>
+    React.createElement("div", {
+      key: p.id,
+      className: "chv",
       style: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gap: 20
+        background: "linear-gradient(135deg, #0f1118 0%, #1a1a2e 100%)",
+        borderRadius: 16,
+        overflow: "hidden",
+        border: "1px solid rgba(0,229,255,.08)",
+        position: "relative",
+        transition: "all .15s ease"
       }
-    }, products.map(p =>
-      React.createElement('div', {
-        key: p.id,
-        className: 'card',
-        style: { overflow: 'hidden', position: 'relative' }
-      }, [
-        p.photos?.[0] && React.createElement('img', {
-          key: 'image',
-          src: p.photos[0],
-          style: { width: '100%', height: 200, objectFit: 'cover' },
-          loading: 'lazy'
-        }),
-        React.createElement('div', {
-          key: 'content',
-          style: { padding: 20 }
-        }, [
-          React.createElement('h4', {
-            key: 'name',
-            style: {
-              margin: '0 0 8px',
-              fontSize: 16,
-              fontWeight: 700,
-              color: '#eef0f6',
-              lineHeight: 1.3
-            }
-          }, p.name || 'Sin nombre'),
-          React.createElement('div', {
-            key: 'price',
-            style: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }
-          }, [
-            React.createElement('span', {
-              key: 'current',
-              style: { fontSize: 18, fontWeight: 900, color: '#00e5ff' }
-            }, p.price || '—'),
-            p.oldPrice && React.createElement('span', {
-              key: 'old',
-              style: { fontSize: 14, color: '#6878a0', textDecoration: 'line-through' }
-            }, p.oldPrice)
-          ]),
-          p.description && React.createElement('p', {
-            key: 'description',
-            style: {
-              fontSize: 13,
-              color: '#8090b0',
-              lineHeight: 1.4,
-              margin: '8px 0',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
-            }
-          }, p.description),
-          p.badge && React.createElement('span', {
-            key: 'badge',
-            style: {
-              display: 'inline-block',
-              padding: '3px 8px',
-              borderRadius: 6,
-              fontSize: 10,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              background: 'rgba(0,229,255,0.15)',
-              color: '#00e5ff',
-              border: '1px solid rgba(0,229,255,0.3)',
-              marginTop: 8
-            }
-          }, p.badge)
-        ]),
-        React.createElement('div', {
-          key: 'actions',
-          style: {
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            display: 'flex',
-            gap: 8
-          }
-        }, [
-          React.createElement('button', {
-            key: 'edit',
-            className: 'btn',
-            onClick: () => handleEdit(p),
-            style: {
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: 'rgba(0,229,255,0.9)',
-              color: '#080810',
-              fontSize: 12,
-              boxShadow: '0 4px 12px rgba(0,229,255,0.3)'
-            }
-          }, '✏️'),
-          React.createElement('button', {
-            key: 'delete',
-            className: 'btn',
-            onClick: () => handleDelete(p.id),
-            style: {
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              background: 'rgba(239,68,68,0.9)',
-              color: '#fff',
-              fontSize: 12,
-              boxShadow: '0 4px 12px rgba(239,68,68,0.3)'
-            }
-          }, '🗑️')
-        ])
-      ])
-    )) : React.createElement(Empty, {
-      key: 'empty',
-      icon: '📦',
-      title: 'Sin productos aún',
-      subtitle: 'Agrega tu primer producto con el botón + Nuevo Producto'
-    })
-  ]));
-}
-
-// Main App Component
-function App() {
-  const [user, setUser] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [debugInfo, setDebugInfo] = React.useState('Iniciando app...');
-
-  React.useEffect(() => {
-    setDebugInfo('Configurando auth listener...');
-    
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setDebugInfo('✅ Usuario autenticado: ' + user.email);
-        setUser(user);
-        setLoading(false);
-      } else {
-        setDebugInfo('❌ No hay usuario autenticado');
-        setUser(null);
-        setLoading(false);
-      }
-    });
-    
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) {
-    return React.createElement('div', {
+    }, p.photos?.[0] && React.createElement("img", {
+      src: p.photos[0],
       style: {
-        minHeight: '100vh',
-        background: '#080810',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#e8edf8'
+        width: "100%",
+        height: 200,
+        objectFit: "cover"
+      },
+      loading: "lazy"
+    }), React.createElement("div", {
+      style: { padding: 20 }
+    }, React.createElement("h4", {
+      style: {
+        margin: "0 0 8px",
+        fontSize: 16,
+        fontWeight: 700,
+        color: "#eef0f6",
+        lineHeight: 1.3
       }
-    }, [
-      React.createElement('div', { key: 'spinner', className: 'loading', style: { marginBottom: 16 } }),
-      React.createElement('p', { key: 'debug', style: { fontSize: 14, color: '#8090b0' } }, debugInfo)
-    ]);
-  }
+    }, p.name || "Sin nombre"), React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        marginBottom: 8
+      }
+    }, React.createElement("span", {
+      style: {
+        fontSize: 18,
+        fontWeight: 900,
+        color: "#00e5ff"
+      }
+    }, p.price || "—"), p.oldPrice && React.createElement("span", {
+      style: {
+        fontSize: 14,
+        color: "#6878a0",
+        textDecoration: "line-through"
+      }
+    }, p.oldPrice)), p.description && React.createElement("p", {
+      style: {
+        fontSize: 13,
+        color: "#8090b0",
+        lineHeight: 1.4,
+        margin: "8px 0",
+        display: "-webkit-box",
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: "vertical",
+        overflow: "hidden"
+      }
+    }, p.description), p.badge && React.createElement("span", {
+      style: {
+        display: "inline-block",
+        padding: "3px 8px",
+        borderRadius: 6,
+        fontSize: 10,
+        fontWeight: 700,
+        textTransform: "uppercase",
+        background: "rgba(0,229,255,.15)",
+        color: "#00e5ff",
+        border: "1px solid rgba(0,229,255,.3)",
+        marginTop: 8
+      }
+    }, p.badge)), React.createElement("div", {
+      style: {
+        position: "absolute",
+        top: 12,
+        right: 12,
+        display: "flex",
+        gap: 8
+      }
+    }, React.createElement("button", {
+      onClick: () => handleEdit(p),
+      style: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        border: "none",
+        background: "rgba(0,229,255,.9)",
+        color: "#080810",
+        fontSize: 12,
+        cursor: "pointer",
+        boxShadow: "0 4px 12px rgba(0,229,255,.3)"
+      }
+    }, "✏️"), React.createElement("button", {
+      onClick: () => handleDelete(p.id),
+      style: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        border: "none",
+        background: "rgba(239,68,68,.9)",
+        color: "#fff",
+        fontSize: 12,
+        cursor: "pointer",
+        boxShadow: "0 4px 12px rgba(239,68,68,.3)"
+      }
+    }, "🗑️"))))) : React.createElement("div", {
+    style: {
+      textAlign: "center",
+      padding: 80,
+      background: "linear-gradient(135deg, #0f1118 0%, #1a1a2e 100%)",
+      borderRadius: 16,
+      border: "1px solid rgba(0,229,255,.1)"
+    }
+  }, React.createElement("div", {
+    style: { fontSize: 48, marginBottom: 16, opacity: 0.6 }
+  }, "📦"), React.createElement("h3", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      marginBottom: 8,
+      color: "#a0a8b8"
+    }
+  }, "Sin productos aún"), React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: "#6878a0",
+      lineHeight: 1.5
+    }
+  }, "Agrega tu primer producto con el botón", React.createElement("br"), React.createElement("strong", { style: { color: "#00e5ff" } }, "+ Nuevo Producto")))));
 
-  const route = window.location.hash;
-
-  if (route === '#catalogo') {
-    return React.createElement(PublicCatalog);
-  }
-
-  if (user) {
-    return React.createElement(AdminPanel, { user });
-  }
-
-  return React.createElement(LoginScreen);
-}
-
-// Render App
+// Render app
 ReactDOM.render(React.createElement(App), document.getElementById('root'));
 </script>
 </body>
