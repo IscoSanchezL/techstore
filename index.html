@@ -197,22 +197,21 @@ function LoginScreen() {
   },
   React.createElement("div", {
     style: {
-      width: 100,
-      height: 100,
-      borderRadius: 22,
-      background: "linear-gradient(135deg,#0c0c18,#1a0a20)",
+      width: 80,
+      height: 80,
+      borderRadius: 20,
+      background: "linear-gradient(135deg,#00e5ff,#d946ef)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      fontSize: 24,
+      fontWeight: 900,
+      color: "#080810",
       marginBottom: 20,
-      boxShadow: "0 0 40px rgba(0,229,255,.15), 0 8px 30px rgba(0,0,0,.3)",
-      margin: "0 auto 20px"
+      margin: "0 auto 20px",
+      boxShadow: "0 0 30px rgba(0,229,255,.3)"
     }
-  }, React.createElement("img", {
-    src: "Logo%20Fnal.png",
-    alt: "IscoTech.Store",
-    style: { width: 80, height: 80, objectFit: "contain" }
-  })),
+  }, "IT"),
   React.createElement("h1", {
     style: {
       fontSize: 22,
@@ -907,12 +906,20 @@ function AdminPanel({ user }) {
       boxShadow: "0 0 30px rgba(0,229,255,.2), 0 8px 30px rgba(0,0,0,.3)",
       border: "1px solid rgba(0,229,255,.1)"
     }
-  }, React.createElement("img", {
-    src: "Logo%20Fnal.png",
-    alt: "IscoTech.Store",
-    style: { width: 35, height: 35, objectFit: "contain" },
-    loading: "lazy"
-  })), React.createElement("div", null, React.createElement("h1", {
+  }, React.createElement("div", {
+    style: {
+      width: 50,
+      height: 50,
+      borderRadius: 12,
+      background: "linear-gradient(135deg,#00e5ff,#d946ef)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 18,
+      fontWeight: 900,
+      color: "#080810"
+    }
+  }, "IT")), React.createElement("div", null, React.createElement("h1", {
     style: {
       margin: 0,
       fontSize: 28,
