@@ -1106,12 +1106,23 @@ function AdminPanel({ user }) {
 function App() {
   const [user, setUser] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [debugInfo, setDebugInfo] = React.useState('Iniciando app...');
 
   React.useEffect(() => {
+    setDebugInfo('Configurando auth listener...');
+    
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-      setLoading(false);
+      if (user) {
+        setDebugInfo('✅ Usuario autenticado: ' + user.email);
+        setUser(user);
+        setLoading(false);
+      } else {
+        setDebugInfo('❌ No hay usuario autenticado');
+        setUser(null);
+        setLoading(false);
+      }
     });
+    
     return () => unsubscribe();
   }, []);
 
@@ -1121,10 +1132,15 @@ function App() {
         minHeight: '100vh',
         background: '#080810',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        color: '#e8edf8'
       }
-    }, React.createElement('div', { className: 'loading' }));
+    }, [
+      React.createElement('div', { key: 'spinner', className: 'loading', style: { marginBottom: 16 } }),
+      React.createElement('p', { key: 'debug', style: { fontSize: 14, color: '#8090b0' } }, debugInfo)
+    ]);
   }
 
   const route = window.location.hash;
