@@ -267,7 +267,7 @@ function Admin({user}) {
           form.photos.length>0 && h('div',{className:'fprev'},
             form.photos.map((ph,i)=>h('div',{key:i,className:'fpi'},
               h('img',{src:ph}),
-              h('button',{className:'fpi-rm',type:'button',onClick:()=>setForm(p=>({...p,photos:p.photos.filter((_,j)=>j!==i)}));},'×')
+              h('button',{className:'fpi-rm',type:'button',onClick:()=>setForm(p=>({...p,photos:p.photos.filter((_,j)=>j!==i)}))},'×')
             ))
           )
         ),
