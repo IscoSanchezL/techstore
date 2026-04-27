@@ -3,454 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>IscoTech.Store - Catálogo</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<title>IscoTech.Store</title>
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" as="script">
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" as="script">
+<link rel="dns-prefetch" href="//techstore-4eea2-default-rtdb.firebaseio.com">
+<link rel="dns-prefetch" href="//fonts.gstatic.com">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { 
-  background: #080810; 
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-  color: #e8edf8; 
-  overflow-x: hidden;
-  line-height: 1.5;
-}
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(0,229,255,0.3); } 50% { box-shadow: 0 0 40px rgba(0,229,255,0.6); } }
-
-.btn { 
-  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); 
-  cursor: pointer; 
-  border: none; 
-  font-family: inherit;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-.btn:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
-.btn:active { transform: scale(0.97); }
-
-.modern-card {
-  background: linear-gradient(145deg, #0a0f1a 0%, #1a1a2e 50%, #16213e 100%);
-  border: 1px solid rgba(0,229,255,0.1);
-  border-radius: 20px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-  backdrop-filter: blur(20px);
-}
-
-.modern-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.5), transparent);
-  z-index: 1;
-}
-
-.modern-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  border-color: rgba(0,229,255,0.3);
-  box-shadow: 
-    0 20px 60px rgba(0,0,0,0.5),
-    0 0 80px rgba(0,229,255,0.1),
-    inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-.product-card {
-  background: linear-gradient(145deg, #0a0f1a 0%, #1a1a2e 50%, #16213e 100%);
-  border: 1px solid rgba(0,229,255,0.08);
-  border-radius: 24px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-  backdrop-filter: blur(20px);
-  cursor: pointer;
-}
-
-.product-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(0,229,255,0.02) 0%, transparent 50%, rgba(217,70,239,0.02) 100%);
-  z-index: 1;
-  transition: opacity 0.3s;
-}
-
-.product-card:hover::before { opacity: 0.5; }
-
-.product-card:hover {
-  transform: translateY(-12px) rotateX(5deg) rotateY(5deg);
-  border-color: rgba(0,229,255,0.25);
-  box-shadow: 
-    0 25px 80px rgba(0,0,0,0.6),
-    0 0 100px rgba(0,229,255,0.15),
-    inset 0 1px 0 rgba(255,255,255,0.15);
-}
-
-.product-image {
-  width: 100%;
-  height: 280px;
-  object-fit: cover;
-  position: relative;
-  z-index: 2;
-  transition: all 0.4s ease;
-}
-
-.product-card:hover .product-image {
-  transform: scale(1.05);
-  filter: brightness(1.1) saturate(1.2);
-}
-
-.product-content {
-  padding: 24px;
-  position: relative;
-  z-index: 3;
-  background: linear-gradient(180deg, transparent 0%, rgba(8,8,16,0.8) 100%);
-}
-
-.product-badge {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  z-index: 4;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.1);
-  animation: pulse 2s infinite;
-}
-
-.product-title {
-  font-size: 20px;
-  font-weight: 800;
-  margin-bottom: 8px;
-  color: #ffffff;
-  line-height: 1.3;
-  background: linear-gradient(135deg, #ffffff, #e8edf8);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.product-price {
-  font-size: 24px;
-  font-weight: 900;
-  margin-bottom: 12px;
-  background: linear-gradient(135deg, #00e5ff, #d946ef);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.product-description {
-  font-size: 14px;
-  color: #a0b0c8;
-  line-height: 1.6;
-  margin-bottom: 16px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.product-actions {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: flex;
-  gap: 8px;
-  z-index: 4;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s ease;
-}
-
-.product-card:hover .product-actions {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.action-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  border: none;
-  backdrop-filter: blur(20px);
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.edit-btn {
-  background: linear-gradient(135deg, rgba(0,229,255,0.8), rgba(0,229,255,0.6));
-  border: 1px solid rgba(0,229,255,0.3);
-}
-
-.delete-btn {
-  background: linear-gradient(135deg, rgba(239,68,68,0.8), rgba(239,68,68,0.6));
-  border: 1px solid rgba(239,68,68,0.3);
-}
-
-.action-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-}
-
-.logo-3d {
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
-  background: linear-gradient(145deg, #00e5ff, #d946ef, #7c3aed);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  font-weight: 900;
-  color: #080810;
-  position: relative;
-  box-shadow: 
-    0 0 60px rgba(0,229,255,0.4),
-    inset 0 2px 4px rgba(255,255,255,0.3),
-    inset 0 -2px 4px rgba(0,0,0,0.3);
-  animation: glow 3s ease-in-out infinite;
-}
-
-.input-modern {
-  padding: 16px 20px;
-  border-radius: 16px;
-  border: 2px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  color: #e8edf8;
-  font-size: 14px;
-  font-weight: 500;
-  outline: none;
-  transition: all 0.3s ease;
-  font-family: inherit;
-  backdrop-filter: blur(20px);
-}
-
-.input-modern:focus {
-  border-color: rgba(0,229,255,0.5);
-  background: rgba(255,255,255,0.08);
-  box-shadow: 0 0 0 4px rgba(0,229,255,0.1);
-}
-
-.loading-modern {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(0,229,255,0.1);
-  border-top-color: #00e5ff;
-  border-radius: 50%;
-  animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-}
-
-.specs-tag {
-  display: inline-block;
-  padding: 6px 12px;
-  margin: 4px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  background: linear-gradient(135deg, rgba(0,229,255,0.1), rgba(0,229,255,0.05));
-  color: #00e5ff;
-  border: 1px solid rgba(0,229,255,0.2);
-  backdrop-filter: blur(10px);
-}
-
-.form-modern {
-  background: linear-gradient(145deg, #0a0f1a 0%, #1a1a2e 50%, #16213e 100%);
-  border: 1px solid rgba(0,229,255,0.15);
-  border-radius: 24px;
-  padding: 32px;
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-}
-
-.form-modern::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #00e5ff, #d946ef, #7c3aed, #00e5ff);
-  background-size: 200% 100%;
-  animation: slideUp 3s linear infinite;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 80px 20px;
-  color: #6878a0;
-  animation: fadeIn 0.8s ease;
-}
-
-.empty-icon {
-  font-size: 80px;
-  margin-bottom: 24px;
-  opacity: 0.6;
-  display: block;
-}
-
-.grid-modern {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 32px;
-  padding: 0;
-}
-
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#080810;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#e8edf8;overflow-x:hidden}
+.logo{width:60px;height:60px;border-radius:15px;background:linear-gradient(135deg,#00e5ff,#d946ef);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#080810;box-shadow:0 0 30px rgba(0,229,255,0.4)}
+.loading{width:40px;height:40px;border:3px solid rgba(0,229,255,0.1);border-top-color:#00e5ff;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.card{background:linear-gradient(145deg,#0a0f1a 0%,#1a1a2e 50%,#16213e 100%);border:1px solid rgba(0,229,255,0.08);border-radius:20px;transition:all 0.3s ease;backdrop-filter:blur(20px)}
+.card:hover{transform:translateY(-8px);border-color:rgba(0,229,255,0.2);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.btn{padding:12px 20px;border-radius:12px;border:none;font-weight:700;cursor:pointer;transition:all 0.2s ease;font-family:inherit}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.btn-primary{background:linear-gradient(135deg,#00e5ff,#d946ef);color:#080810}
+.btn-secondary{background:rgba(255,255,255,0.05);color:#a0a8b8;border:1px solid rgba(255,255,255,0.1)}
+.input{padding:14px 18px;border-radius:12px;border:2px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#e8edf8;outline:none;transition:border-color 0.2s;font-family:inherit}
+.input:focus{border-color:rgba(0,229,255,0.5)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;margin-top:12px}
+.photo-item{position:relative}
+.photo-item img{width:100%;height:80px;object-fit:cover;border-radius:8px;border:2px solid rgba(0,229,255,0.2)}
+.photo-remove{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:12px;font-weight:bold;cursor:pointer}
 @media (max-width: 768px) {
-  .grid-modern {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 24px;
-  }
-  
-  .product-card:hover {
-    transform: translateY(-8px);
-  }
-  
-  .modern-card:hover {
-    transform: translateY(-4px);
-  }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .photo-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
 }
-
-.header-modern {
-  background: linear-gradient(145deg, #0a0f1a 0%, #1a1a2e 50%, #16213e 100%);
-  border: 1px solid rgba(0,229,255,0.1);
-  border-radius: 24px;
-  padding: 32px;
-  margin-bottom: 32px;
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(20px);
-}
-
-.header-modern::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 1;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 24px;
-  position: relative;
-  z-index: 2;
-}
-
-.brand-section {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.brand-title {
-  font-size: 32px;
-  font-weight: 900;
-  margin: 0;
-  background: linear-gradient(135deg, #00e5ff, #d946ef, #7c3aed);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -1px;
-}
-
-.brand-subtitle {
-  font-size: 14px;
-  color: #6878a0;
-  margin-top: 4px;
-  font-weight: 500;
-}
-
-.stats-badge {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  background: rgba(0,229,255,0.1);
-  border-radius: 16px;
-  border: 1px solid rgba(0,229,255,0.2);
-  margin-top: 8px;
-}
-
-.stats-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #00e5ff;
-  animation: pulse 2s infinite;
-}
-
-.stats-text {
-  font-size: 12px;
-  color: #00e5ff;
-  font-weight: 700;
-}
-
-.btn-primary {
-  padding: 14px 28px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #00e5ff, #d946ef);
-  color: #080810;
-  font-size: 14px;
-  font-weight: 800;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 8px 32px rgba(0,229,255,0.3);
-  letter-spacing: 0.5px;
-}
-
-.btn-secondary {
-  padding: 14px 28px;
-  border-radius: 16px;
-  border: 2px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  color: #a0a8b8;
-  font-size: 14px;
-  font-weight: 600;
-  backdrop-filter: blur(20px);
-}
+.product-card{position:relative;overflow:hidden;cursor:pointer}
+.product-img{width:100%;height:240px;object-fit:cover;transition:transform 0.3s ease}
+.product-card:hover .product-img{transform:scale(1.05)}
+.product-content{padding:20px}
+.product-title{font-size:18px;font-weight:800;margin-bottom:8px;background:linear-gradient(135deg,#ffffff,#e8edf8);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.product-price{font-size:22px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.product-desc{color:#a0b0c8;font-size:14px;line-height:1.5}
+.badge{position:absolute;top:12px;left:12px;padding:4px 8px;border-radius:8px;font-size:10px;font-weight:800;text-transform:uppercase}
+.badge-nuevo{background:rgba(34,197,94,0.9);color:#fff}
+.badge-ultimo{background:rgba(245,158,11,0.9);color:#fff}
+.badge-promocion{background:rgba(239,68,68,0.9);color:#fff}
+.actions{position:absolute;top:12px;right:12px;display:flex;gap:8px;opacity:0;transition:opacity 0.3s}
+.product-card:hover .actions{opacity:1}
+.action-btn{width:36px;height:36px;border-radius:10px;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.edit-btn{background:rgba(0,229,255,0.8)}
+.delete-btn{background:rgba(239,68,68,0.8)}
+.form-container{background:linear-gradient(145deg,#0a0f1a 0%,#1a1a2e 50%,#16213e 100%);border:1px solid rgba(0,229,255,0.15);border-radius:20px;padding:28px;margin-bottom:24px;backdrop-filter:blur(20px)}
+.upload-area{border:2px dashed rgba(0,229,255,0.3);border-radius:12px;padding:20px;text-align:center;background:rgba(0,229,255,0.05);margin:12px 0;cursor:pointer;transition:all 0.3s}
+.upload-area:hover{border-color:rgba(0,229,255,0.5);background:rgba(0,229,255,0.1)}
+.badge{position:absolute;top:12px;left:12px;padding:4px 8px;border-radius:8px;font-size:10px;font-weight:800;text-transform:uppercase}
+.badge-nuevo{background:rgba(34,197,94,0.9);color:#fff}
+.badge-ultimo{background:rgba(245,158,11,0.9);color:#fff}
+.badge-promocion{background:rgba(239,68,68,0.9);color:#fff}
+.badge-oferta{background:rgba(139,92,246,0.9);color:#fff}
+.actions{position:absolute;top:12px;right:12px;display:flex;gap:8px;opacity:0;transition:opacity 0.3s}
+.product-card:hover .actions{opacity:1}
+.action-btn{width:36px;height:36px;border-radius:10px;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px)}
+.edit-btn{background:rgba(0,229,255,0.8)}
+.delete-btn{background:rgba(239,68,68,0.8)}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:12px;margin-top:12px}
+.photo-item{position:relative}
+.photo-item img{width:100%;height:80px;object-fit:cover;border-radius:8px;border:2px solid rgba(0,229,255,0.2)}
+.photo-remove{position:absolute;top:-8px;right:-8px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:12px;font-weight:bold;cursor:pointer}
 </style>
 </head>
 <body>
-
 <div id="root">
-  <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #080810;">
-    <div style="text-align: center;">
-      <div class="loading-modern"></div>
-      <p style="margin-top: 20px; color: #6878a0; font-weight: 500;">Iniciando IscoTech.Store...</p>
-    </div>
-  </div>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center">
+<div style="text-align:center">
+<div class="logo" style="margin:0 auto 16px">IT</div>
+<div class="loading"></div>
+<p style="margin-top:16px;color:#6878a0;font-size:14px">Cargando...</p>
+</div>
+</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -460,816 +84,1075 @@ body {
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
 <script>
-// Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAYKbbK7GqZgGKRl2-cWG8Gw8EGMYqS2HY",
-  authDomain: "techstore-4eea2.firebaseapp.com",
-  databaseURL: "https://techstore-4eea2-default-rtdb.firebaseio.com",
-  projectId: "techstore-4eea2",
-  storageBucket: "techstore-4eea2.firebasestorage.app",
-  messagingSenderId: "429953715769",
-  appId: "1:429953715769:web:6b3bb7d79faf577ed707e8"
-};
+// Wait for all scripts to load before initializing
+let scriptsLoaded = 0;
+const totalScripts = 5; // React, ReactDOM, Firebase (3)
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const auth = firebase.auth();
-
-// Image Compression Utility
-const compressImage = (file, maxWidth = 800, quality = 0.7) => {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    img.onload = () => {
-      const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
-      canvas.width = img.width * ratio;
-      canvas.height = img.height * ratio;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
-    
-    const reader = new FileReader();
-    reader.onload = (e) => img.src = e.target.result;
-    reader.readAsDataURL(file);
-  });
-};
-
-// Login Screen Component
-function LoginScreen() {
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [error, setError] = React.useState('');
-  const [message, setMessage] = React.useState('');
-  const [loading, setLoading] = React.useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setMessage('');
-    
-    try {
-      await auth.signInWithEmailAndPassword(email, password);
-    } catch (err) {
-      setError('Credenciales incorrectas');
-    }
-    setLoading(false);
-  };
-
-  const handleForgotPassword = async () => {
-    if (!email) {
-      setError('Ingresa tu email primero');
-      return;
-    }
-    
-    setLoading(true);
-    setError('');
-    setMessage('');
-    
-    try {
-      await auth.sendPasswordResetEmail(email);
-      setMessage('Email de recuperación enviado. Revisa tu bandeja de entrada.');
-    } catch (err) {
-      setError('Error al enviar el email. Verifica que el email sea correcto.');
-    }
-    setLoading(false);
-  };
-
-  return React.createElement('div', {
-    style: {
-      minHeight: '100vh',
-      background: '#080810',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '0 16px'
-    }
-  }, React.createElement('div', {
-    className: 'form-modern',
-    style: {
-      width: '100%',
-      maxWidth: 420,
-      textAlign: 'center'
-    }
-  }, [
-    React.createElement('div', { key: 'logo', className: 'logo-3d', style: { margin: '0 auto 24px' } }, 'IT'),
-    React.createElement('h1', {
-      key: 'title',
-      className: 'brand-title',
-      style: { marginBottom: 8 }
-    }, 'IscoTech.Store'),
-    React.createElement('p', {
-      key: 'subtitle',
-      className: 'brand-subtitle',
-      style: { marginBottom: 32 }
-    }, 'Inicia sesión para administrar tu tienda'),
-    React.createElement('form', {
-      key: 'form',
-      onSubmit: handleSubmit,
-      style: { textAlign: 'left' }
-    }, [
-      React.createElement('input', {
-        key: 'email',
-        className: 'input-modern',
-        type: 'email',
-        placeholder: 'Correo electrónico',
-        value: email,
-        onChange: (e) => setEmail(e.target.value),
-        style: { width: '100%', marginBottom: 16 },
-        required: true
-      }),
-      React.createElement('input', {
-        key: 'password',
-        className: 'input-modern',
-        type: 'password',
-        placeholder: 'Contraseña',
-        value: password,
-        onChange: (e) => setPassword(e.target.value),
-        style: { width: '100%', marginBottom: 20 },
-        required: true
-      }),
-      error && React.createElement('p', {
-        key: 'error',
-        style: { 
-          color: '#ef4444', 
-          fontSize: 13, 
-          marginBottom: 16, 
-          textAlign: 'center',
-          padding: '12px 16px',
-          background: 'rgba(239,68,68,0.1)',
-          borderRadius: 8,
-          border: '1px solid rgba(239,68,68,0.2)'
-        }
-      }, error),
-      message && React.createElement('p', {
-        key: 'message',
-        style: { 
-          color: '#10b981', 
-          fontSize: 13, 
-          marginBottom: 16, 
-          textAlign: 'center',
-          padding: '12px 16px',
-          background: 'rgba(16,185,129,0.1)',
-          borderRadius: 8,
-          border: '1px solid rgba(16,185,129,0.2)'
-        }
-      }, message),
-      React.createElement('button', {
-        key: 'submit',
-        className: 'btn btn-primary',
-        type: 'submit',
-        disabled: loading,
-        style: {
-          width: '100%',
-          marginBottom: 16,
-          opacity: loading ? 0.7 : 1
-        }
-      }, loading ? 'Iniciando sesión...' : 'Iniciar sesión'),
-      React.createElement('button', {
-        key: 'forgot',
-        className: 'btn btn-secondary',
-        type: 'button',
-        onClick: handleForgotPassword,
-        disabled: loading,
-        style: {
-          width: '100%',
-          opacity: loading ? 0.7 : 1
-        }
-      }, '¿Olvidaste tu contraseña?')
-    ])
-  ]));
+function checkScriptsLoaded() {
+  scriptsLoaded++;
+  if (scriptsLoaded >= totalScripts) {
+    initializeApp();
+  }
 }
 
-// Admin Panel Component  
-function AdminPanel({ user }) {
-  const [products, setProducts] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [showForm, setShowForm] = React.useState(false);
-  const [editingId, setEditingId] = React.useState(null);
-  const [formData, setFormData] = React.useState({
-    name: '',
-    price: '',
-    oldPrice: '',
-    description: '',
-    badge: '',
-    specs: '',
-    photos: []
-  });
-
-  React.useEffect(() => {
-    const ref = db.ref('products');
-    ref.on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const list = Object.keys(data).map(key => ({ id: key, ...data[key] }))
-          .filter(p => !p.deleted);
-        setProducts(list);
-      }
-      setLoading(false);
-    });
-    return () => ref.off();
-  }, []);
-
-  const resetForm = () => {
-    setFormData({ name: '', price: '', oldPrice: '', description: '', badge: '', specs: '', photos: [] });
-    setEditingId(null);
-    setShowForm(false);
-  };
-
-  const handleEdit = (product) => {
-    setFormData({
-      name: product.name || '',
-      price: product.price || '',
-      oldPrice: product.oldPrice || '',
-      description: product.description || '',
-      badge: product.badge || '',
-      specs: product.specs ? product.specs.join(', ') : '',
-      photos: product.photos || []
-    });
-    setEditingId(product.id);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm('¿Eliminar este producto?')) {
-      await db.ref('products/' + id).update({ deleted: true });
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const specs = formData.specs ? formData.specs.split(',').map(s => s.trim()).filter(s => s) : [];
-    const productData = { ...formData, specs, updatedAt: Date.now() };
-
-    try {
-      if (editingId) {
-        await db.ref('products/' + editingId).update(productData);
-      } else {
-        await db.ref('products').push(productData);
-      }
-      resetForm();
-    } catch (error) {
-      alert('Error al guardar: ' + error.message);
-    }
-  };
-
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      try {
-        const compressed = await compressImage(file);
-        setFormData(prev => ({ ...prev, photos: [...prev.photos, compressed] }));
-      } catch (error) {
-        alert('Error al procesar imagen');
-      }
-    }
-  };
-
-  const getBadgeStyle = (badge) => {
-    const styles = {
-      'NUEVO': { background: 'linear-gradient(135deg, rgba(34,197,94,0.9), rgba(34,197,94,0.7))', color: '#fff' },
-      'ÚLTIMO': { background: 'linear-gradient(135deg, rgba(245,158,11,0.9), rgba(245,158,11,0.7))', color: '#fff' },
-      'PROMOCIÓN': { background: 'linear-gradient(135deg, rgba(239,68,68,0.9), rgba(239,68,68,0.7))', color: '#fff' },
-      'OFERTA': { background: 'linear-gradient(135deg, rgba(139,92,246,0.9), rgba(139,92,246,0.7))', color: '#fff' }
+function initializeApp() {
+  try {
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYKbbK7GqZgGKRl2-cWG8Gw8EGMYqS2HY",
+      authDomain: "techstore-4eea2.firebaseapp.com",
+      databaseURL: "https://techstore-4eea2-default-rtdb.firebaseio.com",
+      projectId: "techstore-4eea2",
+      storageBucket: "techstore-4eea2.firebasestorage.app",
+      messagingSenderId: "429953715769",
+      appId: "1:429953715769:web:6b3bb7d79faf577ed707e8"
     };
-    return styles[badge] || { background: 'rgba(0,229,255,0.8)', color: '#fff' };
-  };
 
-  if (loading) {
-    return React.createElement('div', {
-      style: {
-        minHeight: '100vh',
-        background: '#080810',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // Compresión de imágenes
+    const compressImage = (file, quality = 0.6) => {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+          const maxSize = 600;
+          const ratio = Math.min(maxSize / img.width, maxSize / img.height);
+          canvas.width = img.width * ratio;
+          canvas.height = img.height * ratio;
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        
+        const reader = new FileReader();
+        reader.onload = (e) => img.src = e.target.result;
+        reader.readAsDataURL(file);
+      });
+    };
+
+    // Procesar múltiples imágenes
+    const processMultipleImages = async (files) => {
+      const compressed = [];
+      for (const file of files) {
+        if (file.type.startsWith('image/')) {
+          const result = await compressImage(file);
+          compressed.push(result);
+        }
       }
-    }, React.createElement('div', {
-      style: { textAlign: 'center' }
-    }, [
-      React.createElement('div', { key: 'spinner', className: 'loading-modern' }),
-      React.createElement('p', { key: 'text', style: { marginTop: 20, color: '#6878a0', fontWeight: 500 } }, 'Cargando panel de administración...')
-    ]));
-  }
+      return compressed;
+    };
 
-  return React.createElement('div', {
-    style: { minHeight: '100vh', background: '#080810' }
-  }, React.createElement('div', {
-    style: { maxWidth: 1400, margin: '0 auto', padding: '24px' }
-  }, [
-    // Header
-    React.createElement('div', {
-      key: 'header',
-      className: 'header-modern'
-    }, React.createElement('div', {
-      className: 'header-content'
-    }, [
-      React.createElement('div', {
-        key: 'brand',
-        className: 'brand-section'
-      }, [
-        React.createElement('div', { key: 'logo', className: 'logo-3d' }, 'IT'),
-        React.createElement('div', { key: 'info' }, [
-          React.createElement('h1', { key: 'title', className: 'brand-title' }, 'IscoTech.Store'),
-          React.createElement('p', { key: 'subtitle', className: 'brand-subtitle' }, 'Panel de Control Administrativo'),
-          React.createElement('div', { key: 'stats', className: 'stats-badge' }, [
-            React.createElement('div', { key: 'dot', className: 'stats-dot' }),
-            React.createElement('span', { key: 'text', className: 'stats-text' }, products.length + ' productos activos'),
-            React.createElement('span', { key: 'user', style: { fontSize: 12, color: '#8090b0', marginLeft: 16 } }, user.email)
-          ])
-        ])
-      ]),
-      React.createElement('div', {
-        key: 'actions',
-        style: { display: 'flex', gap: 16 }
-      }, [
-        React.createElement('button', {
-          key: 'new',
-          className: 'btn btn-primary',
-          onClick: () => setShowForm(!showForm)
-        }, showForm ? '✕ Cancelar' : '✨ Nuevo Producto'),
-        React.createElement('button', {
-          key: 'logout',
-          className: 'btn btn-secondary',
-          onClick: () => auth.signOut()
-        }, '↗ Salir')
-      ])
-    ])),
+    // Login Component
+    function LoginScreen() {
+      const [email, setEmail] = React.useState('');
+      const [password, setPassword] = React.useState('');
+      const [error, setError] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
 
-    // Form
-    showForm && React.createElement('div', {
-      key: 'form',
-      className: 'form-modern',
-      style: { marginBottom: 32, animation: 'slideUp 0.4s ease' }
-    }, React.createElement('form', {
-      onSubmit: handleSubmit
-    }, [
-      React.createElement('h3', {
-        key: 'title',
-        style: { 
-          margin: '0 0 24px',
-          fontSize: 24,
-          fontWeight: 800,
-          background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent'
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        
+        try {
+          await auth.signInWithEmailAndPassword(email, password);
+        } catch (err) {
+          setError('Credenciales incorrectas');
         }
-      }, (editingId ? '✏️ Editando' : '✨ Creando') + ' Producto'),
-      React.createElement('div', {
-        key: 'grid1',
+        setLoading(false);
+      };
+
+      return React.createElement('div', {
         style: {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: 20,
-          marginBottom: 20
+          minHeight: '100vh',
+          background: '#080810',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '0 16px'
         }
+      }, React.createElement('div', {
+        className: 'form-container',
+        style: { width: '100%', maxWidth: 400, textAlign: 'center' }
       }, [
-        React.createElement('input', {
-          key: 'name',
-          className: 'input-modern',
-          type: 'text',
-          placeholder: 'Nombre del producto',
-          value: formData.name,
-          onChange: (e) => setFormData(prev => ({ ...prev, name: e.target.value })),
-          required: true
-        }),
-        React.createElement('input', {
-          key: 'price',
-          className: 'input-modern',
-          type: 'text',
-          placeholder: 'Precio (ej: $ 1.500.000)',
-          value: formData.price,
-          onChange: (e) => setFormData(prev => ({ ...prev, price: e.target.value }))
-        })
-      ]),
-      React.createElement('div', {
-        key: 'grid2',
-        style: {
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: 20,
-          marginBottom: 20
-        }
-      }, [
-        React.createElement('input', {
-          key: 'oldprice',
-          className: 'input-modern',
-          type: 'text',
-          placeholder: 'Precio anterior (opcional)',
-          value: formData.oldPrice,
-          onChange: (e) => setFormData(prev => ({ ...prev, oldPrice: e.target.value }))
-        }),
-        React.createElement('select', {
-          key: 'badge',
-          className: 'input-modern',
-          value: formData.badge,
-          onChange: (e) => setFormData(prev => ({ ...prev, badge: e.target.value }))
-        }, [
-          React.createElement('option', { key: 'none', value: '' }, 'Sin etiqueta'),
-          React.createElement('option', { key: 'new', value: 'NUEVO' }, '🆕 NUEVO'),
-          React.createElement('option', { key: 'last', value: 'ÚLTIMO' }, '⭐ ÚLTIMO'),
-          React.createElement('option', { key: 'promo', value: 'PROMOCIÓN' }, '🔥 PROMOCIÓN'),
-          React.createElement('option', { key: 'offer', value: 'OFERTA' }, '💜 OFERTA')
-        ])
-      ]),
-      React.createElement('textarea', {
-        key: 'description',
-        className: 'input-modern',
-        placeholder: 'Descripción detallada del producto...',
-        value: formData.description,
-        onChange: (e) => setFormData(prev => ({ ...prev, description: e.target.value })),
-        style: { width: '100%', minHeight: 100, marginBottom: 20, resize: 'vertical' }
-      }),
-      React.createElement('input', {
-        key: 'specs',
-        className: 'input-modern',
-        type: 'text',
-        placeholder: 'Especificaciones separadas por comas (ej: RAM 16GB, SSD 512GB, Intel Core i7)',
-        value: formData.specs,
-        onChange: (e) => setFormData(prev => ({ ...prev, specs: e.target.value })),
-        style: { width: '100%', marginBottom: 20 }
-      }),
-      React.createElement('div', {
-        key: 'photos',
-        style: { marginBottom: 24 }
-      }, [
-        React.createElement('label', {
-          key: 'label',
-          style: { display: 'block', marginBottom: 12, fontSize: 14, fontWeight: 700, color: '#e8edf8' }
-        }, '📸 Fotos del producto (compresión automática):'),
-        React.createElement('input', {
-          key: 'upload',
-          type: 'file',
-          accept: 'image/*',
-          onChange: handlePhotoUpload,
-          style: { 
-            marginBottom: 16, 
-            color: '#8090b0',
-            fontSize: 14,
-            padding: '12px 16px',
-            borderRadius: 12,
-            border: '2px dashed rgba(0,229,255,0.3)',
-            background: 'rgba(0,229,255,0.05)',
-            width: '100%'
-          }
-        }),
-        formData.photos.length > 0 && React.createElement('div', {
-          key: 'grid',
+        React.createElement('div', { key: 'logo', className: 'logo', style: { margin: '0 auto 20px' } }, 'IT'),
+        React.createElement('h1', {
+          key: 'title',
           style: {
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
-            gap: 16,
-            maxWidth: 500
+            fontSize: 24,
+            fontWeight: 900,
+            marginBottom: 8,
+            background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
           }
-        }, formData.photos.map((photo, i) =>
+        }, 'IscoTech.Store'),
+        React.createElement('p', {
+          key: 'subtitle',
+          style: { color: '#8090b0', marginBottom: 24, fontSize: 14 }
+        }, 'Panel de Administración'),
+        React.createElement('form', {
+          key: 'form',
+          onSubmit: handleSubmit
+        }, [
+          React.createElement('input', {
+            key: 'email',
+            className: 'input',
+            type: 'email',
+            placeholder: 'Email',
+            value: email,
+            onChange: (e) => setEmail(e.target.value),
+            style: { width: '100%', marginBottom: 16 },
+            required: true
+          }),
+          React.createElement('input', {
+            key: 'password',
+            className: 'input',
+            type: 'password',
+            placeholder: 'Contraseña',
+            value: password,
+            onChange: (e) => setPassword(e.target.value),
+            style: { width: '100%', marginBottom: 16 },
+            required: true
+          }),
+          error && React.createElement('p', {
+            key: 'error',
+            style: { color: '#ef4444', fontSize: 13, marginBottom: 16 }
+          }, error),
+          React.createElement('button', {
+            key: 'submit',
+            className: 'btn btn-primary',
+            type: 'submit',
+            disabled: loading,
+            style: { width: '100%' }
+          }, loading ? 'Entrando...' : 'Iniciar Sesión')
+        ])
+      ]));
+    }
+
+    // Admin Component (shortened for space)
+    function AdminPanel({ user }) {
+      const [products, setProducts] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      const [showForm, setShowForm] = React.useState(false);
+      const [editingId, setEditingId] = React.useState(null);
+      const [formData, setFormData] = React.useState({
+        name: '', price: '', oldPrice: '', description: '', badge: '', specs: '', photos: []
+      });
+
+      React.useEffect(() => {
+        const ref = db.ref('products');
+        ref.on('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            const list = Object.keys(data).map(key => ({ id: key, ...data[key] }))
+              .filter(p => !p.deleted);
+            setProducts(list);
+          }
+          setLoading(false);
+        });
+        return () => ref.off();
+      }, []);
+
+      const resetForm = () => {
+        setFormData({ name: '', price: '', oldPrice: '', description: '', badge: '', specs: '', photos: [] });
+        setEditingId(null);
+        setShowForm(false);
+      };
+
+      const handleEdit = (product) => {
+        setFormData({
+          name: product.name || '',
+          price: product.price || '',
+          oldPrice: product.oldPrice || '',
+          description: product.description || '',
+          badge: product.badge || '',
+          specs: product.specs ? product.specs.join(', ') : '',
+          photos: product.photos || []
+        });
+        setEditingId(product.id);
+        setShowForm(true);
+      };
+
+      const handleDelete = async (id) => {
+        if (confirm('¿Eliminar producto?')) {
+          await db.ref('products/' + id).update({ deleted: true });
+        }
+      };
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        const specs = formData.specs ? formData.specs.split(',').map(s => s.trim()).filter(s => s) : [];
+        const productData = { ...formData, specs, updatedAt: Date.now() };
+
+        try {
+          if (editingId) {
+            await db.ref('products/' + editingId).update(productData);
+          } else {
+            await db.ref('products').push(productData);
+          }
+          resetForm();
+        } catch (error) {
+          alert('Error: ' + error.message);
+        }
+      };
+
+      const handleMultiplePhotos = async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+          try {
+            const compressed = await processMultipleImages(files);
+            setFormData(prev => ({
+              ...prev,
+              photos: [...prev.photos, ...compressed]
+            }));
+          } catch (error) {
+            alert('Error al procesar imágenes');
+          }
+        }
+      };
+
+      if (loading) {
+        return React.createElement('div', {
+          style: {
+            minHeight: '100vh',
+            background: '#080810',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }
+        }, React.createElement('div', {
+          style: { textAlign: 'center' }
+        }, [
+          React.createElement('div', { key: 'spinner', className: 'loading' }),
+          React.createElement('p', { key: 'text', style: { marginTop: 16, color: '#8090b0' } }, 'Cargando admin...')
+        ]));
+      }
+
+    // Admin Component with fixed editing system
+    function AdminPanel({ user }) {
+      const [products, setProducts] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      const [showForm, setShowForm] = React.useState(false);
+      const [editingId, setEditingId] = React.useState(null);
+      const [formData, setFormData] = React.useState({
+        name: '', price: '', oldPrice: '', description: '', badge: '', specs: '', photos: []
+      });
+
+      React.useEffect(() => {
+        const ref = db.ref('products');
+        ref.on('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            const list = Object.keys(data).map(key => ({ id: key, ...data[key] }))
+              .filter(p => !p.deleted);
+            setProducts(list);
+          }
+          setLoading(false);
+        });
+        return () => ref.off();
+      }, []);
+
+      const resetForm = () => {
+        setFormData({ name: '', price: '', oldPrice: '', description: '', badge: '', specs: '', photos: [] });
+        setEditingId(null);
+        setShowForm(false);
+      };
+
+      const handleEdit = (product) => {
+        console.log('Editando producto:', product.id); // Debug
+        setFormData({
+          name: product.name || '',
+          price: product.price || '',
+          oldPrice: product.oldPrice || '',
+          description: product.description || '',
+          badge: product.badge || '',
+          specs: product.specs ? product.specs.join(', ') : '',
+          photos: product.photos || []
+        });
+        setEditingId(product.id); // IMPORTANTE: Guardar el ID
+        setShowForm(true);
+      };
+
+      const handleDelete = async (id) => {
+        if (confirm('¿Eliminar este producto?')) {
+          try {
+            // Marcar como eliminado en lugar de borrar completamente
+            await db.ref('products/' + id).update({ deleted: true });
+            console.log('Producto marcado como eliminado:', id);
+          } catch (error) {
+            console.error('Error al eliminar:', error);
+            alert('Error al eliminar el producto');
+          }
+        }
+      };
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        const specs = formData.specs ? formData.specs.split(',').map(s => s.trim()).filter(s => s) : [];
+        const productData = { 
+          ...formData, 
+          specs, 
+          updatedAt: Date.now(),
+          deleted: false // Asegurar que no esté marcado como eliminado
+        };
+
+        try {
+          if (editingId) {
+            // ACTUALIZAR producto existente
+            console.log('Actualizando producto ID:', editingId);
+            await db.ref('products/' + editingId).update(productData);
+            alert('Producto actualizado correctamente');
+          } else {
+            // CREAR nuevo producto
+            console.log('Creando nuevo producto');
+            await db.ref('products').push(productData);
+            alert('Producto creado correctamente');
+          }
+          resetForm();
+        } catch (error) {
+          console.error('Error al guardar:', error);
+          alert('Error al guardar: ' + error.message);
+        }
+      };
+
+      const handleMultiplePhotos = async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) {
+          try {
+            const compressed = await processMultipleImages(files);
+            setFormData(prev => ({
+              ...prev,
+              photos: [...prev.photos, ...compressed]
+            }));
+          } catch (error) {
+            alert('Error al procesar imágenes');
+          }
+        }
+      };
+
+      if (loading) {
+        return React.createElement('div', {
+          style: {
+            minHeight: '100vh',
+            background: '#080810',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }
+        }, React.createElement('div', {
+          style: { textAlign: 'center' }
+        }, [
+          React.createElement('div', { key: 'spinner', className: 'loading' }),
+          React.createElement('p', { key: 'text', style: { marginTop: 16, color: '#8090b0' } }, 'Cargando admin...')
+        ]));
+      }
+
+      return React.createElement('div', {
+        style: { minHeight: '100vh', background: '#080810' }
+      }, React.createElement('div', {
+        style: { maxWidth: 1400, margin: '0 auto', padding: '20px' }
+      }, [
+        // Header
+        React.createElement('div', {
+          key: 'header',
+          className: 'card',
+          style: { padding: '20px 24px', marginBottom: 24 }
+        }, React.createElement('div', {
+          style: {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 16
+          }
+        }, [
           React.createElement('div', {
-            key: i,
-            style: { position: 'relative' }
+            key: 'brand',
+            style: { display: 'flex', alignItems: 'center', gap: 16 }
           }, [
-            React.createElement('img', {
-              key: 'img',
-              src: photo,
-              style: {
-                width: '100%',
-                height: 100,
-                objectFit: 'cover',
-                borderRadius: 12,
-                border: '2px solid rgba(0,229,255,0.3)'
-              }
-            }),
+            React.createElement('div', { key: 'logo', className: 'logo' }, 'IT'),
+            React.createElement('div', { key: 'info' }, [
+              React.createElement('h1', {
+                key: 'title',
+                style: {
+                  margin: 0,
+                  fontSize: 24,
+                  fontWeight: 900,
+                  background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }
+              }, 'IscoTech.Store'),
+              React.createElement('p', {
+                key: 'count',
+                style: { fontSize: 12, color: '#8090b0', marginTop: 4 }
+              }, products.length + ' productos • ' + user.email)
+            ])
+          ]),
+          React.createElement('div', {
+            key: 'actions',
+            style: { display: 'flex', gap: 12 }
+          }, [
             React.createElement('button', {
-              key: 'remove',
+              key: 'new',
+              className: 'btn btn-primary',
+              onClick: () => {
+                resetForm(); // Limpiar antes de mostrar formulario nuevo
+                setShowForm(true);
+              }
+            }, showForm ? '✕ Cancelar' : '+ Nuevo'),
+            React.createElement('button', {
+              key: 'logout',
+              className: 'btn btn-secondary',
+              onClick: () => auth.signOut()
+            }, 'Salir')
+          ])
+        ])),
+
+        // Formulario
+        showForm && React.createElement('div', {
+          key: 'form',
+          className: 'form-container'
+        }, React.createElement('form', {
+          onSubmit: handleSubmit
+        }, [
+          React.createElement('h3', {
+            key: 'title',
+            style: {
+              margin: '0 0 20px',
+              fontSize: 20,
+              fontWeight: 800,
+              background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }
+          }, (editingId ? '✏️ Editando' : '✨ Nuevo') + ' Producto' + (editingId ? ' (ID: ' + editingId.substr(0,6) + '...)' : '')),
+          React.createElement('div', {
+            key: 'grid1',
+            style: {
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 16,
+              marginBottom: 16
+            }
+          }, [
+            React.createElement('input', {
+              key: 'name',
+              className: 'input',
+              type: 'text',
+              placeholder: 'Nombre del producto',
+              value: formData.name,
+              onChange: (e) => setFormData(prev => ({ ...prev, name: e.target.value })),
+              required: true
+            }),
+            React.createElement('input', {
+              key: 'price',
+              className: 'input',
+              type: 'text',
+              placeholder: 'Precio (ej: $ 1.500.000)',
+              value: formData.price,
+              onChange: (e) => setFormData(prev => ({ ...prev, price: e.target.value }))
+            })
+          ]),
+          React.createElement('div', {
+            key: 'grid2',
+            style: {
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 16,
+              marginBottom: 16
+            }
+          }, [
+            React.createElement('input', {
+              key: 'oldprice',
+              className: 'input',
+              type: 'text',
+              placeholder: 'Precio anterior',
+              value: formData.oldPrice,
+              onChange: (e) => setFormData(prev => ({ ...prev, oldPrice: e.target.value }))
+            }),
+            React.createElement('select', {
+              key: 'badge',
+              className: 'input',
+              value: formData.badge,
+              onChange: (e) => setFormData(prev => ({ ...prev, badge: e.target.value }))
+            }, [
+              React.createElement('option', { key: 'none', value: '' }, 'Sin etiqueta'),
+              React.createElement('option', { key: 'new', value: 'NUEVO' }, 'NUEVO'),
+              React.createElement('option', { key: 'last', value: 'ÚLTIMO' }, 'ÚLTIMO'),
+              React.createElement('option', { key: 'promo', value: 'PROMOCIÓN' }, 'PROMOCIÓN')
+            ])
+          ]),
+          React.createElement('textarea', {
+            key: 'description',
+            className: 'input',
+            placeholder: 'Descripción del producto',
+            value: formData.description,
+            onChange: (e) => setFormData(prev => ({ ...prev, description: e.target.value })),
+            style: { width: '100%', minHeight: 80, marginBottom: 16, resize: 'vertical' }
+          }),
+          React.createElement('input', {
+            key: 'specs',
+            className: 'input',
+            type: 'text',
+            placeholder: 'Especificaciones separadas por comas',
+            value: formData.specs,
+            onChange: (e) => setFormData(prev => ({ ...prev, specs: e.target.value })),
+            style: { width: '100%', marginBottom: 16 }
+          }),
+          // Subida múltiple de fotos
+          React.createElement('div', {
+            key: 'photos'
+          }, [
+            React.createElement('label', {
+              key: 'label',
+              style: { display: 'block', marginBottom: 12, fontSize: 14, fontWeight: 700, color: '#e8edf8' }
+            }, '📸 Fotos (selecciona múltiples):'),
+            React.createElement('div', {
+              key: 'upload',
+              className: 'upload-area',
+              onClick: () => document.getElementById('photo-input').click()
+            }, [
+              React.createElement('input', {
+                key: 'input',
+                id: 'photo-input',
+                type: 'file',
+                accept: 'image/*',
+                multiple: true,
+                onChange: handleMultiplePhotos,
+                style: { display: 'none' }
+              }),
+              React.createElement('p', {
+                key: 'text',
+                style: { color: '#00e5ff', fontSize: 14, fontWeight: 600 }
+              }, '📷 Haz clic para seleccionar múltiples fotos'),
+              React.createElement('p', {
+                key: 'hint',
+                style: { color: '#8090b0', fontSize: 12, marginTop: 4 }
+              }, 'Mantén Ctrl/Cmd para seleccionar varias imágenes')
+            ]),
+            formData.photos.length > 0 && React.createElement('div', {
+              key: 'grid',
+              className: 'photo-grid'
+            }, formData.photos.map((photo, i) =>
+              React.createElement('div', {
+                key: i,
+                className: 'photo-item'
+              }, [
+                React.createElement('img', {
+                  key: 'img',
+                  src: photo
+                }),
+                React.createElement('button', {
+                  key: 'remove',
+                  className: 'photo-remove',
+                  type: 'button',
+                  onClick: () => setFormData(prev => ({ ...prev, photos: prev.photos.filter((_, idx) => idx !== i) }))
+                }, '×')
+              ])
+            ))
+          ]),
+          React.createElement('div', {
+            key: 'buttons',
+            style: { display: 'flex', gap: 12, marginTop: 20 }
+          }, [
+            React.createElement('button', {
+              key: 'submit',
+              className: 'btn btn-primary',
+              type: 'submit'
+            }, editingId ? '💾 Actualizar Producto' : '✨ Crear Producto'),
+            React.createElement('button', {
+              key: 'cancel',
+              className: 'btn btn-secondary',
               type: 'button',
-              onClick: () => setFormData(prev => ({ ...prev, photos: prev.photos.filter((_, idx) => idx !== i) })),
+              onClick: resetForm
+            }, 'Cancelar')
+          ])
+        ])),
+
+        // Grid de productos
+        products.length > 0 ? React.createElement('div', {
+          key: 'products',
+          className: 'grid'
+        }, products.map(p =>
+          React.createElement('div', {
+            key: p.id,
+            className: 'card product-card'
+          }, [
+            p.photos?.[0] && React.createElement('img', {
+              key: 'image',
+              src: p.photos[0],
+              className: 'product-img',
+              loading: 'lazy'
+            }),
+            p.badge && React.createElement('div', {
+              key: 'badge',
+              className: 'badge badge-' + p.badge.toLowerCase()
+            }, p.badge),
+            React.createElement('div', {
+              key: 'actions',
+              className: 'actions'
+            }, [
+              React.createElement('button', {
+                key: 'edit',
+                className: 'action-btn edit-btn',
+                onClick: () => handleEdit(p),
+                title: 'Editar producto'
+              }, '✏️'),
+              React.createElement('button', {
+                key: 'delete',
+                className: 'action-btn delete-btn',
+                onClick: () => handleDelete(p.id),
+                title: 'Eliminar producto'
+              }, '🗑️')
+            ]),
+            React.createElement('div', {
+              key: 'content',
+              className: 'product-content'
+            }, [
+              React.createElement('h4', {
+                key: 'title',
+                className: 'product-title'
+              }, p.name || 'Sin nombre'),
+              React.createElement('div', {
+                key: 'prices',
+                style: { display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }
+              }, [
+                React.createElement('span', {
+                  key: 'current',
+                  className: 'product-price'
+                }, p.price || '—'),
+                p.oldPrice && React.createElement('span', {
+                  key: 'old',
+                  style: { fontSize: 14, color: '#6878a0', textDecoration: 'line-through' }
+                }, p.oldPrice)
+              ]),
+              p.description && React.createElement('p', {
+                key: 'description',
+                className: 'product-desc'
+              }, p.description),
+              React.createElement('small', {
+                key: 'id',
+                style: { 
+                  color: '#6878a0', 
+                  fontSize: 10, 
+                  display: 'block',
+                  marginTop: 8,
+                  fontFamily: 'monospace'
+                }
+              }, 'ID: ' + p.id.substr(0,8) + '...')
+            ])
+          ])
+        )) : React.createElement('div', {
+          key: 'empty',
+          style: {
+            textAlign: 'center',
+            padding: '60px 20px',
+            color: '#8090b0'
+          }
+        }, [
+          React.createElement('div', {
+            key: 'icon',
+            style: { fontSize: 48, marginBottom: 16, opacity: 0.6 }
+          }, '📦'),
+          React.createElement('h3', {
+            key: 'title',
+            style: { fontSize: 18, fontWeight: 700, marginBottom: 8 }
+          }, 'Sin productos'),
+          React.createElement('p', {
+            key: 'subtitle',
+            style: { fontSize: 14 }
+          }, 'Agrega el primer producto')
+        ])
+      ]));
+    }
+    }
+
+    // Public Catalog with full product detail view
+    function PublicCatalog() {
+      const [products, setProducts] = React.useState([]);
+      const [loading, setLoading] = React.useState(true);
+      const [selectedProduct, setSelectedProduct] = React.useState(null);
+      const [imageIndex, setImageIndex] = React.useState(0);
+
+      React.useEffect(() => {
+        const ref = db.ref('products');
+        ref.on('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            const list = Object.keys(data).map(key => ({ id: key, ...data[key] }))
+              .filter(p => !p.deleted);
+            setProducts(list);
+          }
+          setLoading(false);
+        });
+        return () => ref.off();
+      }, []);
+
+      const handleProductClick = (product) => {
+        setSelectedProduct(product);
+        setImageIndex(0);
+      };
+
+      const closeDetail = () => {
+        setSelectedProduct(null);
+        setImageIndex(0);
+      };
+
+      if (loading) {
+        return React.createElement('div', {
+          style: {
+            minHeight: '100vh',
+            background: '#080810',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }
+        }, React.createElement('div', {
+          style: { textAlign: 'center' }
+        }, [
+          React.createElement('div', { key: 'spinner', className: 'loading' }),
+          React.createElement('p', { key: 'text', style: { marginTop: 16, color: '#8090b0' } }, 'Cargando catálogo...')
+        ]));
+      }
+
+      // Product Detail View
+      if (selectedProduct) {
+        return React.createElement('div', {
+          style: { minHeight: '100vh', background: '#080810', padding: '20px' }
+        }, React.createElement('div', {
+          style: { maxWidth: 1000, margin: '0 auto' }
+        }, [
+          React.createElement('button', {
+            key: 'back',
+            className: 'btn btn-secondary',
+            onClick: closeDetail,
+            style: { marginBottom: 20 }
+          }, '← Volver al catálogo'),
+          React.createElement('div', {
+            key: 'detail',
+            className: 'card',
+            style: { padding: '30px', overflow: 'visible' }
+          }, React.createElement('div', {
+            style: {
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 40,
+              alignItems: 'start'
+            }
+          }, [
+            // Images section
+            React.createElement('div', { key: 'images' }, [
+              selectedProduct.photos?.[0] && React.createElement('img', {
+                key: 'main',
+                src: selectedProduct.photos[imageIndex] || selectedProduct.photos[0],
+                style: {
+                  width: '100%',
+                  height: 400,
+                  objectFit: 'cover',
+                  borderRadius: 16,
+                  marginBottom: 16
+                }
+              }),
+              selectedProduct.photos?.length > 1 && React.createElement('div', {
+                key: 'thumbs',
+                style: {
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+                  gap: 8
+                }
+              }, selectedProduct.photos.map((photo, i) =>
+                React.createElement('img', {
+                  key: i,
+                  src: photo,
+                  onClick: () => setImageIndex(i),
+                  style: {
+                    width: '100%',
+                    height: 80,
+                    objectFit: 'cover',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    border: imageIndex === i ? '3px solid #00e5ff' : '2px solid rgba(255,255,255,0.1)',
+                    transition: 'all 0.2s ease'
+                  }
+                })
+              ))
+            ]),
+            // Product info section
+            React.createElement('div', { key: 'info' }, [
+              selectedProduct.badge && React.createElement('span', {
+                key: 'badge',
+                className: 'badge badge-' + selectedProduct.badge.toLowerCase(),
+                style: { marginBottom: 16, display: 'inline-block' }
+              }, selectedProduct.badge),
+              React.createElement('h1', {
+                key: 'title',
+                className: 'product-title',
+                style: { fontSize: 32, marginBottom: 16 }
+              }, selectedProduct.name || 'Sin nombre'),
+              React.createElement('div', {
+                key: 'prices',
+                style: { marginBottom: 20 }
+              }, [
+                React.createElement('span', {
+                  key: 'current',
+                  className: 'product-price',
+                  style: { fontSize: 36, display: 'block', marginBottom: 8 }
+                }, selectedProduct.price || '—'),
+                selectedProduct.oldPrice && React.createElement('span', {
+                  key: 'old',
+                  style: { 
+                    fontSize: 20, 
+                    color: '#6878a0', 
+                    textDecoration: 'line-through',
+                    fontWeight: 600
+                  }
+                }, 'Antes: ' + selectedProduct.oldPrice)
+              ]),
+              selectedProduct.description && React.createElement('p', {
+                key: 'description',
+                style: {
+                  fontSize: 16,
+                  lineHeight: 1.6,
+                  color: '#a0b0c8',
+                  marginBottom: 24
+                }
+              }, selectedProduct.description),
+              selectedProduct.specs?.length > 0 && React.createElement('div', {
+                key: 'specs'
+              }, [
+                React.createElement('h3', {
+                  key: 'specs-title',
+                  style: {
+                    fontSize: 18,
+                    fontWeight: 700,
+                    marginBottom: 12,
+                    color: '#e8edf8'
+                  }
+                }, 'Especificaciones:'),
+                React.createElement('div', {
+                  key: 'specs-list',
+                  style: { display: 'flex', flexWrap: 'wrap', gap: 8 }
+                }, selectedProduct.specs.map((spec, i) =>
+                  React.createElement('span', {
+                    key: i,
+                    style: {
+                      padding: '8px 12px',
+                      borderRadius: 8,
+                      fontSize: 12,
+                      background: 'rgba(0,229,255,0.1)',
+                      color: '#00e5ff',
+                      border: '1px solid rgba(0,229,255,0.2)'
+                    }
+                  }, spec)
+                ))
+              ])
+            ])
+          ]))
+        ]));
+      }
+
+      // Product Grid
+      return React.createElement('div', {
+        style: { minHeight: '100vh', background: '#080810', padding: '24px' }
+      }, React.createElement('div', {
+        style: { maxWidth: 1200, margin: '0 auto' }
+      }, [
+        // Header
+        React.createElement('div', {
+          key: 'header',
+          style: {
+            textAlign: 'center',
+            padding: '40px 20px',
+            marginBottom: 32
+          }
+        }, [
+          React.createElement('div', { key: 'logo', className: 'logo', style: { margin: '0 auto 16px' } }, 'IT'),
+          React.createElement('h1', {
+            key: 'title',
+            style: {
+              fontSize: 28,
+              fontWeight: 900,
+              marginBottom: 8,
+              background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }
+          }, 'IscoTech.Store'),
+          React.createElement('p', {
+            key: 'subtitle',
+            style: { fontSize: 14, color: '#8090b0' }
+          }, products.length + ' productos disponibles • Haz clic para ver detalles')
+        ]),
+
+        // Products
+        products.length > 0 ? React.createElement('div', {
+          key: 'products',
+          className: 'grid'
+        }, products.map(p =>
+          React.createElement('div', {
+            key: p.id,
+            className: 'card product-card',
+            onClick: () => handleProductClick(p),
+            style: { cursor: 'pointer' }
+          }, [
+            p.photos?.[0] && React.createElement('img', {
+              key: 'image',
+              src: p.photos[0],
+              className: 'product-img',
+              loading: 'lazy'
+            }),
+            p.badge && React.createElement('div', {
+              key: 'badge',
+              className: 'badge badge-' + p.badge.toLowerCase()
+            }, p.badge),
+            p.photos?.length > 1 && React.createElement('div', {
+              key: 'photo-count',
               style: {
                 position: 'absolute',
-                top: -8,
-                right: -8,
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                top: 12,
+                right: 12,
+                background: 'rgba(0,0,0,0.7)',
                 color: '#fff',
-                border: 'none',
-                fontSize: 14,
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(239,68,68,0.4)',
-                fontWeight: 700
+                padding: '4px 8px',
+                borderRadius: 6,
+                fontSize: 11,
+                fontWeight: 600
               }
-            }, '×')
+            }, p.photos.length + ' fotos'),
+            React.createElement('div', {
+              key: 'content',
+              className: 'product-content'
+            }, [
+              React.createElement('h4', {
+                key: 'title',
+                className: 'product-title'
+              }, p.name || 'Sin nombre'),
+              React.createElement('div', {
+                key: 'prices',
+                style: { display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }
+              }, [
+                React.createElement('span', {
+                  key: 'current',
+                  className: 'product-price'
+                }, p.price || '—'),
+                p.oldPrice && React.createElement('span', {
+                  key: 'old',
+                  style: { fontSize: 14, color: '#6878a0', textDecoration: 'line-through' }
+                }, p.oldPrice)
+              ]),
+              p.description && React.createElement('p', {
+                key: 'description',
+                className: 'product-desc',
+                style: {
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }
+              }, p.description)
+            ])
           ])
-        ))
-      ]),
-      React.createElement('div', {
-        key: 'buttons',
-        style: { display: 'flex', gap: 16 }
-      }, [
-        React.createElement('button', {
-          key: 'submit',
-          className: 'btn btn-primary',
-          type: 'submit'
-        }, (editingId ? '💾 Actualizar' : '✨ Crear') + ' Producto'),
-        React.createElement('button', {
-          key: 'cancel',
-          className: 'btn btn-secondary',
-          type: 'button',
-          onClick: resetForm
-        }, 'Cancelar')
-      ])
-    ])),
-
-    // Products Grid
-    products.length > 0 ? React.createElement('div', {
-      key: 'products',
-      className: 'grid-modern'
-    }, products.map(p =>
-      React.createElement('div', {
-        key: p.id,
-        className: 'product-card',
-        style: { animation: 'fadeIn 0.6s ease' }
-      }, [
-        p.photos?.[0] && React.createElement('img', {
-          key: 'image',
-          src: p.photos[0],
-          className: 'product-image',
-          loading: 'lazy'
-        }),
-        p.badge && React.createElement('div', {
-          key: 'badge',
-          className: 'product-badge',
-          style: getBadgeStyle(p.badge)
-        }, p.badge),
-        React.createElement('div', {
-          key: 'actions',
-          className: 'product-actions'
-        }, [
-          React.createElement('button', {
-            key: 'edit',
-            className: 'action-btn edit-btn',
-            onClick: () => handleEdit(p)
-          }, '✏️'),
-          React.createElement('button', {
-            key: 'delete',
-            className: 'action-btn delete-btn',
-            onClick: () => handleDelete(p.id)
-          }, '🗑️')
-        ]),
-        React.createElement('div', {
-          key: 'content',
-          className: 'product-content'
-        }, [
-          React.createElement('h4', {
-            key: 'title',
-            className: 'product-title'
-          }, p.name || 'Sin nombre'),
-          React.createElement('div', {
-            key: 'prices',
-            style: { display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }
-          }, [
-            React.createElement('span', {
-              key: 'current',
-              className: 'product-price'
-            }, p.price || '—'),
-            p.oldPrice && React.createElement('span', {
-              key: 'old',
-              style: { 
-                fontSize: 16, 
-                color: '#6878a0', 
-                textDecoration: 'line-through',
-                fontWeight: 600
-              }
-            }, p.oldPrice)
-          ]),
-          p.description && React.createElement('p', {
-            key: 'description',
-            className: 'product-description'
-          }, p.description),
-          p.specs?.length > 0 && React.createElement('div', {
-            key: 'specs',
-            style: { marginTop: 16 }
-          }, p.specs.slice(0, 3).map((spec, i) =>
-            React.createElement('span', {
-              key: i,
-              className: 'specs-tag'
-            }, spec)
-          ))
-        ])
-      ])
-    )) : React.createElement('div', {
-      key: 'empty',
-      className: 'empty-state'
-    }, [
-      React.createElement('span', {
-        key: 'icon',
-        className: 'empty-icon'
-      }, '🛍️'),
-      React.createElement('h3', {
-        key: 'title',
-        style: { fontSize: 24, fontWeight: 800, marginBottom: 12, color: '#a0a8b8' }
-      }, 'Sin productos aún'),
-      React.createElement('p', {
-        key: 'subtitle',
-        style: { fontSize: 16, lineHeight: 1.6, maxWidth: 400, margin: '0 auto' }
-      }, 'Comienza agregando tu primer producto con el botón "✨ Nuevo Producto" de arriba')
-    ])
-  ]));
-}
-
-// Public Catalog Component
-function PublicCatalog() {
-  const [products, setProducts] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    const ref = db.ref('products');
-    ref.on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const list = Object.keys(data).map(key => ({ id: key, ...data[key] }))
-          .filter(p => !p.deleted);
-        setProducts(list);
-      }
-      setLoading(false);
-    });
-    return () => ref.off();
-  }, []);
-
-  if (loading) {
-    return React.createElement('div', {
-      style: {
-        minHeight: '100vh',
-        background: '#080810',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }
-    }, React.createElement('div', {
-      style: { textAlign: 'center' }
-    }, [
-      React.createElement('div', { key: 'spinner', className: 'loading-modern' }),
-      React.createElement('p', { key: 'text', style: { marginTop: 20, color: '#6878a0', fontWeight: 500 } }, 'Cargando catálogo...')
-    ]));
-  }
-
-  return React.createElement('div', {
-    style: { minHeight: '100vh', background: '#080810' }
-  }, React.createElement('div', {
-    style: { maxWidth: 1200, margin: '0 auto', padding: '24px' }
-  }, [
-    // Header público
-    React.createElement('div', {
-      key: 'header',
-      style: {
-        textAlign: 'center',
-        padding: '60px 20px 40px',
-        marginBottom: 40
-      }
-    }, [
-      React.createElement('div', { key: 'logo', className: 'logo-3d', style: { margin: '0 auto 20px' } }, 'IT'),
-      React.createElement('h1', {
-        key: 'title',
-        className: 'brand-title',
-        style: { marginBottom: 8 }
-      }, 'IscoTech.Store'),
-      React.createElement('p', {
-        key: 'subtitle',
-        style: { fontSize: 16, color: '#8090b0', fontWeight: 500 }
-      }, products.length + ' productos disponibles')
-    ]),
-
-    // Grid de productos público
-    products.length > 0 ? React.createElement('div', {
-      key: 'products',
-      className: 'grid-modern'
-    }, products.map(p =>
-      React.createElement('div', {
-        key: p.id,
-        className: 'product-card',
-        style: { animation: 'fadeIn 0.6s ease' }
-      }, [
-        p.photos?.[0] && React.createElement('img', {
-          key: 'image',
-          src: p.photos[0],
-          className: 'product-image',
-          loading: 'lazy'
-        }),
-        p.badge && React.createElement('div', {
-          key: 'badge',
-          className: 'product-badge',
+        )) : React.createElement('div', {
+          key: 'empty',
           style: {
-            background: 'linear-gradient(135deg, rgba(0,229,255,0.9), rgba(0,229,255,0.7))',
-            color: '#fff'
+            textAlign: 'center',
+            padding: '60px 20px',
+            color: '#8090b0'
           }
-        }, p.badge),
-        React.createElement('div', {
-          key: 'content',
-          className: 'product-content'
         }, [
-          React.createElement('h4', {
-            key: 'title',
-            className: 'product-title'
-          }, p.name || 'Sin nombre'),
           React.createElement('div', {
-            key: 'prices',
-            style: { display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 12 }
-          }, [
-            React.createElement('span', {
-              key: 'current',
-              className: 'product-price'
-            }, p.price || '—'),
-            p.oldPrice && React.createElement('span', {
-              key: 'old',
-              style: { 
-                fontSize: 16, 
-                color: '#6878a0', 
-                textDecoration: 'line-through',
-                fontWeight: 600
-              }
-            }, p.oldPrice)
-          ]),
-          p.description && React.createElement('p', {
-            key: 'description',
-            className: 'product-description'
-          }, p.description),
-          p.specs?.length > 0 && React.createElement('div', {
-            key: 'specs',
-            style: { marginTop: 16 }
-          }, p.specs.slice(0, 3).map((spec, i) =>
-            React.createElement('span', {
-              key: i,
-              className: 'specs-tag'
-            }, spec)
-          ))
+            key: 'icon',
+            style: { fontSize: 48, marginBottom: 16, opacity: 0.6 }
+          }, '🏪'),
+          React.createElement('h3', {
+            key: 'title',
+            style: { fontSize: 18, fontWeight: 700, marginBottom: 8 }
+          }, 'Catálogo en construcción'),
+          React.createElement('p', {
+            key: 'subtitle',
+            style: { fontSize: 14 }
+          }, 'Pronto nuevos productos')
         ])
-      ])
-    )) : React.createElement('div', {
-      key: 'empty',
-      className: 'empty-state'
-    }, [
-      React.createElement('span', {
-        key: 'icon',
-        className: 'empty-icon'
-      }, '🏪'),
-      React.createElement('h3', {
-        key: 'title',
-        style: { fontSize: 24, fontWeight: 800, marginBottom: 12, color: '#a0a8b8' }
-      }, 'Catálogo en construcción'),
-      React.createElement('p', {
-        key: 'subtitle',
-        style: { fontSize: 16, lineHeight: 1.6 }
-      }, 'Pronto agregaremos productos increíbles')
-    ])
-  ]));
-}
+      ]));
+    }
 
-// Main App Component
-function App() {
-  const [user, setUser] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+    // Main App
+    function App() {
+      const [user, setUser] = React.useState(null);
+      const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+      React.useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+          setUser(user);
+          setLoading(false);
+        });
+        return () => unsubscribe();
+      }, []);
 
-  if (loading) {
-    return React.createElement('div', {
-      style: {
-        minHeight: '100vh',
-        background: '#080810',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
+      if (loading) {
+        return React.createElement('div', {
+          style: {
+            minHeight: '100vh',
+            background: '#080810',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }
+        }, React.createElement('div', {
+          style: { textAlign: 'center' }
+        }, [
+          React.createElement('div', { key: 'logo', className: 'logo', style: { margin: '0 auto 16px' } }, 'IT'),
+          React.createElement('div', { key: 'spinner', className: 'loading' }),
+          React.createElement('p', { key: 'text', style: { marginTop: 16, color: '#8090b0', fontSize: 14 } }, 'IscoTech.Store')
+        ]));
       }
-    }, React.createElement('div', {
-      style: { textAlign: 'center' }
-    }, [
-      React.createElement('div', { key: 'spinner', className: 'loading-modern' }),
-      React.createElement('p', { key: 'text', style: { marginTop: 20, color: '#6878a0', fontWeight: 500 } }, 'Iniciando IscoTech.Store...')
-    ]));
+
+      const route = window.location.hash;
+
+      if (route === '#catalogo') {
+        return React.createElement(PublicCatalog);
+      }
+
+      if (user) {
+        return React.createElement(AdminPanel, { user });
+      }
+
+      return React.createElement(LoginScreen);
+    }
+
+    // Render app safely
+    ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    
+  } catch (error) {
+    console.error('Error initializing app:', error);
+    document.getElementById('root').innerHTML = `
+      <div style="min-height: 100vh; background: #080810; display: flex; align-items: center; justify-content: center; color: #e8edf8;">
+        <div style="text-align: center; padding: 40px;">
+          <div class="logo" style="margin: 0 auto 20px;">IT</div>
+          <h2 style="color: #ef4444; margin-bottom: 16px;">Error de carga</h2>
+          <p style="color: #8090b0; margin-bottom: 20px;">Recarga la página para intentar de nuevo</p>
+          <button onclick="location.reload()" style="padding: 12px 24px; background: #00e5ff; color: #080810; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">Recargar</button>
+        </div>
+      </div>
+    `;
   }
-
-  const route = window.location.hash;
-
-  if (route === '#catalogo') {
-    return React.createElement(PublicCatalog);
-  }
-
-  if (user) {
-    return React.createElement(AdminPanel, { user });
-  }
-
-  return React.createElement(LoginScreen);
 }
 
-// Render App
-ReactDOM.render(React.createElement(App), document.getElementById('root'));
+// Load scripts with callbacks
 </script>
-</body>
-</html>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" onload="checkScriptsLoaded()"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" onload="checkScriptsLoaded()"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" onload="checkScriptsLoaded()"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" onload="checkScriptsLoaded()"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" onload="checkScriptsLoaded()"></script>
