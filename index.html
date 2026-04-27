@@ -2,438 +2,419 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0">
 <title>IscoTech.Store</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow-x:hidden}
+html,body{min-height:100%;overflow-x:hidden}
 body{background:#080810;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e8edf8;line-height:1.5}
+#root{min-height:100vh}
 .container{max-width:1200px;margin:0 auto;padding:12px 16px}
-.logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#00e5ff,#d946ef);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#080810;box-shadow:0 0 20px rgba(0,229,255,0.35);flex-shrink:0}
-.loading{width:36px;height:36px;border:3px solid rgba(0,229,255,0.15);border-top-color:#00e5ff;border-radius:50%;animation:spin 0.9s linear infinite;margin:0 auto}
+.logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#00e5ff,#d946ef);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#080810;box-shadow:0 0 20px rgba(0,229,255,.35);flex-shrink:0}
+.spinner{width:38px;height:38px;border:3px solid rgba(0,229,255,.15);border-top-color:#00e5ff;border-radius:50%;animation:spin .9s linear infinite;margin:0 auto}
 @keyframes spin{to{transform:rotate(360deg)}}
-.card{background:linear-gradient(135deg,#0a0f1a,#141428);border:1px solid rgba(0,229,255,0.1);border-radius:14px;overflow:hidden}
-.btn{padding:11px 18px;border-radius:8px;border:none;font-weight:600;cursor:pointer;transition:all 0.18s;font-family:inherit;font-size:14px;white-space:nowrap;-webkit-appearance:none}
-.btn-primary{background:linear-gradient(135deg,#00e5ff,#d946ef);color:#080810}
-.btn-secondary{background:rgba(255,255,255,0.06);color:#a0a8b8;border:1px solid rgba(255,255,255,0.12)}
-.btn:active{transform:scale(0.97)}
-@media(hover:hover){.btn:hover{transform:translateY(-1px);filter:brightness(1.1)}}
-.input{padding:12px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#e8edf8;outline:none;font-family:inherit;font-size:16px;width:100%;-webkit-appearance:none;transition:border-color 0.2s}
-.input:focus{border-color:rgba(0,229,255,0.5)}
-.grid{display:grid;gap:14px;margin-top:16px;grid-template-columns:repeat(2,1fr)}
-@media(min-width:600px){.grid{grid-template-columns:repeat(3,1fr)}}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+/* Cards */
+.card{background:linear-gradient(135deg,#0a0f1a,#141428);border:1px solid rgba(0,229,255,.1);border-radius:14px;overflow:hidden}
+/* Buttons */
+.btn{padding:11px 18px;border-radius:8px;border:none;font-weight:600;cursor:pointer;font-family:inherit;font-size:14px;white-space:nowrap;display:inline-block;text-align:center;transition:opacity .15s,transform .15s}
+.btn-p{background:linear-gradient(135deg,#00e5ff,#d946ef);color:#080810}
+.btn-s{background:rgba(255,255,255,.06);color:#a0a8b8;border:1px solid rgba(255,255,255,.12)}
+.btn:active{opacity:.8;transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+/* Inputs */
+.inp{padding:12px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#e8edf8;outline:none;font-family:inherit;font-size:16px;width:100%;transition:border-color .2s;-webkit-appearance:none}
+.inp:focus{border-color:rgba(0,229,255,.5)}
+/* Grid productos */
+.grid{display:grid;gap:12px;margin-top:16px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:580px){.grid{grid-template-columns:repeat(3,1fr);gap:14px}}
 @media(min-width:900px){.grid{grid-template-columns:repeat(4,1fr)}}
-.product-card{position:relative;cursor:pointer;transition:transform 0.2s;overflow:visible}
-@media(hover:hover){.product-card:hover{transform:translateY(-4px)}}
-.product-img{width:100%;height:160px;object-fit:cover;display:block}
-@media(min-width:480px){.product-img{height:190px}}
-@media(min-width:768px){.product-img{height:210px}}
-.product-content{padding:12px}
-.product-title{font-size:14px;font-weight:700;margin-bottom:6px;background:linear-gradient(135deg,#ffffff,#e8edf8);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.product-price{font-size:16px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.product-desc{color:#a0b0c8;font-size:12px;line-height:1.4;margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.actions{position:absolute;top:8px;right:8px;display:flex;gap:4px;opacity:0;transition:opacity 0.25s;z-index:2}
-.product-card:hover .actions{opacity:1}
-@media(hover:none){.actions{opacity:1}}
-.action-btn{width:34px;height:34px;border-radius:7px;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;-webkit-appearance:none}
-.edit-btn{background:rgba(0,229,255,0.85)}
-.delete-btn{background:rgba(239,68,68,0.85)}
-.form-section{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:16px}
-.form-grid{display:grid;gap:12px;margin-bottom:14px}
-@media(min-width:600px){.form-grid{grid-template-columns:1fr 1fr}}
-.photo-upload{border:2px dashed rgba(0,229,255,0.3);border-radius:8px;padding:18px;text-align:center;background:rgba(0,229,255,0.02);margin:10px 0;cursor:pointer}
-.photo-upload:active{background:rgba(0,229,255,0.06)}
-.photo-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-top:10px}
-.photo-item{position:relative}
-.photo-item img{width:100%;height:58px;object-fit:cover;border-radius:6px}
-.photo-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:13px;cursor:pointer;font-weight:bold;display:flex;align-items:center;justify-content:center}
-.detail-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.92);z-index:1000;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
-.detail-content{max-width:760px;margin:0 auto;background:#0d1120;border-radius:14px;overflow:hidden}
-.detail-images{position:relative}
-.detail-main-img{width:100%;height:240px;object-fit:cover;display:block}
-@media(min-width:480px){.detail-main-img{height:300px}}
-@media(min-width:768px){.detail-main-img{height:380px}}
-.detail-thumbs{display:flex;gap:8px;padding:12px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.detail-thumbs::-webkit-scrollbar{height:4px}
-.detail-thumbs::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.3);border-radius:2px}
-.thumb{width:56px;height:56px;flex-shrink:0;object-fit:cover;border-radius:7px;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s}
-.thumb.active{border-color:#00e5ff}
-.detail-info{padding:20px}
-.detail-title{font-size:20px;font-weight:900;margin-bottom:10px;background:linear-gradient(135deg,#ffffff,#e8edf8);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-@media(min-width:480px){.detail-title{font-size:24px}}
-.detail-price{font-size:24px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:14px}
-@media(min-width:480px){.detail-price{font-size:28px}}
-.detail-desc{color:#a0b0c8;font-size:15px;line-height:1.65;margin-bottom:18px}
-.close-btn{position:absolute;top:12px;right:12px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.65);color:#fff;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;-webkit-appearance:none}
-.header-section{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;padding:14px 0}
-.brand-info{display:flex;align-items:center;gap:10px;min-width:0}
-.brand-title{font-size:18px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
-.brand-subtitle{font-size:11px;color:#8090b0;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.action-buttons{display:flex;gap:8px;flex-wrap:wrap}
+/* Producto card */
+.pcard{position:relative;cursor:pointer;transition:transform .2s;overflow:visible}
+@media(hover:hover){.pcard:hover{transform:translateY(-4px)}}
+.pimg{width:100%;height:155px;object-fit:cover;display:block}
+@media(min-width:480px){.pimg{height:185px}}
+@media(min-width:768px){.pimg{height:210px}}
+.pcont{padding:11px}
+.ptitle{font-size:13px;font-weight:700;margin-bottom:5px;background:linear-gradient(135deg,#fff,#e8edf8);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pprice{font-size:15px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.pdesc{color:#a0b0c8;font-size:11px;line-height:1.4;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Admin action btns */
+.acts{position:absolute;top:7px;right:7px;display:flex;gap:4px;z-index:2}
+@media(hover:hover){.acts{opacity:0;transition:opacity .2s} .pcard:hover .acts{opacity:1}}
+.abtn{width:32px;height:32px;border-radius:7px;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.abtn-e{background:rgba(0,229,255,.85)}
+.abtn-d{background:rgba(239,68,68,.85)}
+/* Form */
+.fsec{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px;margin-bottom:16px}
+.fgrid{display:grid;gap:12px;margin-bottom:14px}
+@media(min-width:580px){.fgrid{grid-template-columns:1fr 1fr}}
+.fphoto{border:2px dashed rgba(0,229,255,.3);border-radius:8px;padding:18px;text-align:center;background:rgba(0,229,255,.02);margin:10px 0;cursor:pointer}
+.fphoto:active{background:rgba(0,229,255,.06)}
+.fprev{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin-top:10px}
+.fpi{position:relative}
+.fpi img{width:100%;height:56px;object-fit:cover;border-radius:6px;display:block}
+.fpi-rm{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
+/* Modal detalle */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
+.modal-c{max-width:760px;margin:0 auto;background:#0d1120;border-radius:14px;overflow:hidden}
+.modal-imgs{position:relative}
+.mimg{width:100%;height:230px;object-fit:cover;display:block}
+@media(min-width:480px){.mimg{height:290px}}
+@media(min-width:768px){.mimg{height:370px}}
+.mthumbs{display:flex;gap:8px;padding:10px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.mthumb{width:54px;height:54px;flex-shrink:0;object-fit:cover;border-radius:7px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.mthumb.on{border-color:#00e5ff}
+.minfo{padding:18px}
+.mtitle{font-size:20px;font-weight:900;margin-bottom:9px;background:linear-gradient(135deg,#fff,#e8edf8);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+@media(min-width:480px){.mtitle{font-size:24px}}
+.mprice{font-size:22px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
+.mdesc{color:#a0b0c8;font-size:15px;line-height:1.65;margin-bottom:16px}
+.close-btn{position:absolute;top:11px;right:11px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3}
+/* Header admin */
+.hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 0;margin-bottom:4px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.btitle{font-size:18px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.bsub{font-size:11px;color:#8090b0;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+.hbtns{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:480px){
-  .header-section{flex-direction:column;align-items:stretch}
-  .action-buttons{justify-content:stretch}
-  .action-buttons .btn{flex:1;text-align:center}
+  .hdr{flex-direction:column;align-items:stretch}
+  .hbtns{display:grid;grid-template-columns:1fr 1fr}
+  .hbtns .btn-s:last-child{grid-column:span 2}
 }
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{width:100%;max-width:380px;text-align:center}
+/* Login */
+.lwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lcard{width:100%;max-width:370px;text-align:center}
+/* Grad text util */
+.grad{background:linear-gradient(135deg,#00e5ff,#d946ef);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 </style>
 </head>
 <body>
 <div id="root">
-  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center">
-    <div style="text-align:center">
+  <div class="center">
+    <div>
       <div class="logo" style="margin:0 auto 16px">IT</div>
-      <div class="loading"></div>
-      <p style="margin-top:16px;color:#6878a0;font-size:14px">Cargando IscoTech.Store...</p>
+      <div class="spinner"></div>
+      <p style="margin-top:14px;color:#5a6a90;font-size:14px">Cargando IscoTech.Store…</p>
     </div>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script type="module">
+// ─── Imports via esm.sh (no CORS issues, works on file:// and GitHub Pages) ───
+import { createElement as h, useState, useEffect, Fragment } from 'https://esm.sh/react@18.3.1';
+import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+import { initializeApp, getApps } from 'https://esm.sh/firebase@10.12.0/app';
+import { getDatabase, ref, onValue, off, update, push } from 'https://esm.sh/firebase@10.12.0/database';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://esm.sh/firebase@10.12.0/auth';
 
-<script>
-function initApp() {
-  try {
-    if (typeof firebase === 'undefined') throw new Error('Firebase SDK no disponible');
+// ─── Firebase ───
+const FB = {
+  apiKey:            'AIzaSyAYKbbK7GqZgGKRl2-cWG8Gw8EGMYqS2HY',
+  authDomain:        'techstore-4eea2.firebaseapp.com',
+  databaseURL:       'https://techstore-4eea2-default-rtdb.firebaseio.com',
+  projectId:         'techstore-4eea2',
+  storageBucket:     'techstore-4eea2.firebasestorage.app',
+  messagingSenderId: '429953715769',
+  appId:             '1:429953715769:web:6b3bb7d79faf577ed707e8'
+};
+const app  = getApps().length ? getApps()[0] : initializeApp(FB);
+const db   = getDatabase(app);
+const auth = getAuth(app);
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAYKbbK7GqZgGKRl2-cWG8Gw8EGMYqS2HY",
-      authDomain: "techstore-4eea2.firebaseapp.com",
-      databaseURL: "https://techstore-4eea2-default-rtdb.firebaseio.com",
-      projectId: "techstore-4eea2",
-      storageBucket: "techstore-4eea2.firebasestorage.app",
-      messagingSenderId: "429953715769",
-      appId: "1:429953715769:web:6b3bb7d79faf577ed707e8"
-    };
+// ─── Utilidades ───
+const GS = { background:'linear-gradient(135deg,#00e5ff,#d946ef)', backgroundClip:'text', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' };
 
-    // Evitar doble inicialización
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db   = firebase.database();
-    const auth = firebase.auth();
+const compressImg = (file, q = 0.65) => new Promise(res => {
+  const c = document.createElement('canvas'), ctx = c.getContext('2d'), img = new Image();
+  img.onload = () => {
+    const m = 700, r = Math.min(m / img.width, m / img.height, 1);
+    c.width = img.width * r; c.height = img.height * r;
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    res(c.toDataURL('image/jpeg', q));
+  };
+  const fr = new FileReader();
+  fr.onload = e => { img.src = e.target.result; };
+  fr.readAsDataURL(file);
+});
 
-    // Comprimir imagen
-    const compressImage = (file, quality=0.65) => new Promise((resolve) => {
-      const canvas=document.createElement('canvas'), ctx=canvas.getContext('2d'), img=new Image();
-      img.onload=()=>{
-        const maxSize=700, ratio=Math.min(maxSize/img.width,maxSize/img.height,1);
-        canvas.width=img.width*ratio; canvas.height=img.height*ratio;
-        ctx.drawImage(img,0,0,canvas.width,canvas.height);
-        resolve(canvas.toDataURL('image/jpeg',quality));
-      };
-      const r=new FileReader(); r.onload=(e)=>{img.src=e.target.result;}; r.readAsDataURL(file);
-    });
+const processImgs = async files => {
+  const out = [];
+  for (const f of files) if (f.type.startsWith('image/')) out.push(await compressImg(f));
+  return out;
+};
 
-    const processImages = async (files) => {
-      const out=[];
-      for(const f of files) if(f.type.startsWith('image/')) out.push(await compressImage(f));
-      return out;
-    };
+const Spinner = () => h('div', { className: 'center' },
+  h('div', {},
+    h('div', { className: 'logo', style: { margin: '0 auto 16px' } }, 'IT'),
+    h('div', { className: 'spinner' }),
+    h('p', { style: { marginTop: 14, color: '#8090b0', fontSize: 13 } }, 'Cargando…')
+  )
+);
 
-    // ── LOGIN ──
-    function LoginScreen() {
-      const [email,setEmail]=React.useState('');
-      const [pass,setPass]=React.useState('');
-      const [error,setError]=React.useState('');
-      const [busy,setBusy]=React.useState(false);
+// ═══════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════
+function Login() {
+  const [email, setEmail] = useState('');
+  const [pass,  setPass]  = useState('');
+  const [err,   setErr]   = useState('');
+  const [busy,  setBusy]  = useState(false);
 
-      const handleSubmit=async(e)=>{
-        e.preventDefault(); setBusy(true); setError('');
-        try{ await auth.signInWithEmailAndPassword(email,pass); }
-        catch{ setError('Credenciales incorrectas'); }
-        setBusy(false);
-      };
+  const submit = async e => {
+    e.preventDefault(); setBusy(true); setErr('');
+    try { await signInWithEmailAndPassword(auth, email, pass); }
+    catch { setErr('Correo o contraseña incorrectos'); }
+    setBusy(false);
+  };
 
-      return React.createElement('div',{className:'login-wrap'},
-        React.createElement('div',{className:'form-section login-card'},[
-          React.createElement('div',{key:'logo',className:'logo',style:{margin:'0 auto 20px'}},'IT'),
-          React.createElement('h1',{key:'t',style:{fontSize:22,fontWeight:900,marginBottom:6,background:'linear-gradient(135deg,#00e5ff,#d946ef)',backgroundClip:'text',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}},'IscoTech.Store'),
-          React.createElement('p',{key:'s',style:{color:'#8090b0',fontSize:13,marginBottom:24}},'Panel de Administración'),
-          React.createElement('form',{key:'form',onSubmit:handleSubmit},[
-            React.createElement('input',{key:'em',className:'input',type:'email',placeholder:'Email',value:email,onChange:(e)=>setEmail(e.target.value),style:{marginBottom:12},required:true,autoComplete:'email'}),
-            React.createElement('input',{key:'pw',className:'input',type:'password',placeholder:'Contraseña',value:pass,onChange:(e)=>setPass(e.target.value),style:{marginBottom:16},required:true,autoComplete:'current-password'}),
-            error&&React.createElement('p',{key:'err',style:{color:'#ef4444',fontSize:13,marginBottom:14,textAlign:'center'}},error),
-            React.createElement('button',{key:'btn',className:'btn btn-primary',type:'submit',disabled:busy,style:{width:'100%',padding:'13px'}},busy?'Entrando...':'Iniciar Sesión')
-          ])
-        ])
-      );
-    }
-
-    // ── ADMIN ──
-    function AdminPanel({user}) {
-      const [products,setProducts]=React.useState([]);
-      const [loading,setLoading]=React.useState(true);
-      const [showForm,setShowForm]=React.useState(false);
-      const [editingId,setEditingId]=React.useState(null);
-      const [form,setForm]=React.useState({name:'',price:'',description:'',photos:[]});
-
-      React.useEffect(()=>{
-        const ref=db.ref('products');
-        const cb=(snap)=>{
-          const data=snap.val();
-          setProducts(data?Object.keys(data).map(k=>({id:k,...data[k]})).filter(p=>!p.deleted):[]);
-          setLoading(false);
-        };
-        ref.on('value',cb);
-        return ()=>ref.off('value',cb);
-      },[]);
-
-      const resetForm=()=>{ setForm({name:'',price:'',description:'',photos:[]}); setEditingId(null); setShowForm(false); };
-
-      const handleEdit=(p)=>{
-        setForm({name:p.name||'',price:p.price||'',description:p.description||'',photos:p.photos||[]});
-        setEditingId(p.id); setShowForm(true);
-        window.scrollTo({top:0,behavior:'smooth'});
-      };
-
-      const handleDelete=async(id)=>{
-        if(!confirm('¿Eliminar este producto?')) return;
-        try{ await db.ref('products/'+id).update({deleted:true}); }
-        catch{ alert('Error al eliminar'); }
-      };
-
-      const handleSubmit=async(e)=>{
-        e.preventDefault();
-        const data={...form,updatedAt:Date.now(),deleted:false};
-        try{
-          if(editingId) await db.ref('products/'+editingId).update(data);
-          else          await db.ref('products').push(data);
-          resetForm();
-        } catch{ alert('Error al guardar'); }
-      };
-
-      const handlePhotos=async(e)=>{
-        const files=Array.from(e.target.files);
-        if(!files.length) return;
-        try{ const imgs=await processImages(files); setForm(p=>({...p,photos:[...p.photos,...imgs]})); }
-        catch{ alert('Error al procesar imágenes'); }
-        e.target.value='';
-      };
-
-      if(loading) return React.createElement('div',{style:{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}},
-        React.createElement('div',{style:{textAlign:'center'}},[
-          React.createElement('div',{key:'l',className:'logo',style:{margin:'0 auto 16px'}},'IT'),
-          React.createElement('div',{key:'sp',className:'loading'}),
-          React.createElement('p',{key:'t',style:{marginTop:14,color:'#8090b0',fontSize:13}},'Cargando admin...')
-        ])
-      );
-
-      return React.createElement('div',{className:'container'},[
-
-        // Header
-        React.createElement('div',{key:'hdr',className:'header-section'},[
-          React.createElement('div',{key:'br',className:'brand-info'},[
-            React.createElement('div',{key:'lg',className:'logo'},'IT'),
-            React.createElement('div',{key:'inf'},[
-              React.createElement('div',{key:'t',className:'brand-title'},'IscoTech.Store'),
-              React.createElement('div',{key:'s',className:'brand-subtitle'},products.length+' productos • '+user.email)
-            ])
-          ]),
-          React.createElement('div',{key:'btns',className:'action-buttons'},[
-            React.createElement('button',{key:'cat',className:'btn btn-secondary',onClick:()=>window.open(window.location.pathname+'#catalogo','_blank')},'🌐 Catálogo'),
-            React.createElement('button',{key:'new',className:'btn btn-primary',onClick:()=>{if(showForm)resetForm();else{resetForm();setShowForm(true);}}},showForm?'Cancelar':'+ Nuevo'),
-            React.createElement('button',{key:'out',className:'btn btn-secondary',onClick:()=>auth.signOut()},'Salir')
-          ])
-        ]),
-
-        // Formulario
-        showForm&&React.createElement('div',{key:'frm',className:'form-section'},
-          React.createElement('form',{onSubmit:handleSubmit},[
-            React.createElement('h3',{key:'ft',style:{marginBottom:14,fontSize:16,fontWeight:700,color:'#e8edf8'}},(editingId?'Editar':'Nuevo')+' Producto'),
-            React.createElement('div',{key:'fg',className:'form-grid'},[
-              React.createElement('input',{key:'nm',className:'input',type:'text',placeholder:'Nombre del producto',value:form.name,onChange:(e)=>setForm(p=>({...p,name:e.target.value})),required:true}),
-              React.createElement('input',{key:'pr',className:'input',type:'text',placeholder:'Precio (ej: $150.000)',value:form.price,onChange:(e)=>setForm(p=>({...p,price:e.target.value}))})
-            ]),
-            React.createElement('textarea',{key:'desc',className:'input',placeholder:'Descripción',value:form.description,onChange:(e)=>setForm(p=>({...p,description:e.target.value})),style:{minHeight:80,resize:'vertical',marginBottom:14}}),
-            React.createElement('div',{key:'ph'},[
-              React.createElement('div',{key:'up',className:'photo-upload',onClick:()=>document.getElementById('photo-input').click()},[
-                React.createElement('input',{key:'inp',id:'photo-input',type:'file',accept:'image/*',multiple:true,onChange:handlePhotos,style:{display:'none'}}),
-                React.createElement('p',{key:'t1',style:{color:'#00e5ff',fontSize:14,fontWeight:600}},'📷 Seleccionar fotos'),
-                React.createElement('p',{key:'t2',style:{color:'#8090b0',fontSize:12,marginTop:4}},'Puedes elegir varias a la vez')
-              ]),
-              form.photos.length>0&&React.createElement('div',{key:'prev',className:'photo-preview'},
-                form.photos.map((ph,i)=>
-                  React.createElement('div',{key:i,className:'photo-item'},[
-                    React.createElement('img',{key:'i',src:ph}),
-                    React.createElement('button',{key:'r',className:'photo-remove',type:'button',onClick:()=>setForm(p=>({...p,photos:p.photos.filter((_,idx)=>idx!==i)}));},'×')
-                  ])
-                )
-              )
-            ]),
-            React.createElement('div',{key:'fb',style:{display:'flex',gap:10,marginTop:14,flexWrap:'wrap'}},[
-              React.createElement('button',{key:'sv',className:'btn btn-primary',type:'submit',style:{flex:1,minWidth:100}},editingId?'Actualizar':'Crear'),
-              React.createElement('button',{key:'cl',className:'btn btn-secondary',type:'button',onClick:resetForm,style:{flex:1,minWidth:100}},'Cancelar')
-            ])
-          ])
-        ),
-
-        // Lista productos
-        React.createElement('div',{key:'pl'},[
-          React.createElement('h2',{key:'pt',style:{fontSize:16,fontWeight:700,marginBottom:14,color:'#e8edf8'}},'Productos ('+products.length+')'),
-          products.length>0
-            ?React.createElement('div',{key:'grid',className:'grid'},
-              products.map(p=>
-                React.createElement('div',{key:p.id,className:'card product-card'},[
-                  p.photos?.[0]&&React.createElement('img',{key:'img',src:p.photos[0],className:'product-img'}),
-                  React.createElement('div',{key:'cnt',className:'product-content'},[
-                    React.createElement('h4',{key:'t',className:'product-title'},p.name||'Sin nombre'),
-                    React.createElement('div',{key:'pr',className:'product-price'},p.price||'—'),
-                    p.description&&React.createElement('p',{key:'d',className:'product-desc'},p.description)
-                  ]),
-                  React.createElement('div',{key:'acts',className:'actions'},[
-                    React.createElement('button',{key:'e',className:'action-btn edit-btn',onClick:(ev)=>{ev.stopPropagation();handleEdit(p);}},'✏️'),
-                    React.createElement('button',{key:'d',className:'action-btn delete-btn',onClick:(ev)=>{ev.stopPropagation();handleDelete(p.id);}},'🗑️')
-                  ])
-                ])
-              )
-            )
-            :React.createElement('div',{key:'empty',style:{textAlign:'center',padding:'40px 20px',color:'#8090b0'}},[
-              React.createElement('div',{key:'ic',style:{fontSize:44,marginBottom:12,opacity:0.5}},'📦'),
-              React.createElement('p',{key:'tx'},'Sin productos. Crea el primero.')
-            ])
-        ])
-      ]);
-    }
-
-    // ── CATÁLOGO PÚBLICO ──
-    function PublicCatalog() {
-      const [products,setProducts]=React.useState([]);
-      const [loading,setLoading]=React.useState(true);
-      const [selected,setSelected]=React.useState(null);
-      const [imgIdx,setImgIdx]=React.useState(0);
-
-      React.useEffect(()=>{
-        const ref=db.ref('products');
-        const cb=(snap)=>{
-          const data=snap.val();
-          setProducts(data?Object.keys(data).map(k=>({id:k,...data[k]})).filter(p=>!p.deleted):[]);
-          setLoading(false);
-        };
-        ref.on('value',cb);
-        return ()=>ref.off('value',cb);
-      },[]);
-
-      const open =(p)=>{setSelected(p);setImgIdx(0);};
-      const close=()=>{setSelected(null);setImgIdx(0);};
-
-      if(loading) return React.createElement('div',{style:{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}},
-        React.createElement('div',{style:{textAlign:'center'}},[
-          React.createElement('div',{key:'l',className:'logo',style:{margin:'0 auto 16px'}},'IT'),
-          React.createElement('div',{key:'sp',className:'loading'}),
-          React.createElement('p',{key:'t',style:{marginTop:14,color:'#8090b0',fontSize:13}},'Cargando catálogo...')
-        ])
-      );
-
-      if(selected) return React.createElement('div',{className:'detail-modal'},
-        React.createElement('div',{className:'detail-content'},[
-          React.createElement('button',{key:'cls',className:'close-btn',onClick:close},'×'),
-          React.createElement('div',{key:'imgs',className:'detail-images'},[
-            selected.photos?.[0]&&React.createElement('img',{key:'main',className:'detail-main-img',src:selected.photos[imgIdx]||selected.photos[0]}),
-            selected.photos?.length>1&&React.createElement('div',{key:'th',className:'detail-thumbs'},
-              selected.photos.map((ph,i)=>React.createElement('img',{key:i,src:ph,className:'thumb'+(i===imgIdx?' active':''),onClick:()=>setImgIdx(i)}))
-            )
-          ]),
-          React.createElement('div',{key:'info',className:'detail-info'},[
-            React.createElement('h1',{key:'t',className:'detail-title'},selected.name||'Sin nombre'),
-            React.createElement('div',{key:'pr',className:'detail-price'},selected.price||'—'),
-            selected.description&&React.createElement('p',{key:'d',className:'detail-desc'},selected.description),
-            React.createElement('button',{key:'back',className:'btn btn-primary',onClick:close,style:{marginTop:4,width:'100%'}},'← Volver al catálogo')
-          ])
-        ])
-      );
-
-      return React.createElement('div',{className:'container'},[
-        React.createElement('div',{key:'hdr',style:{textAlign:'center',padding:'32px 0 16px'}},[
-          React.createElement('div',{key:'l',className:'logo',style:{margin:'0 auto 14px'}},'IT'),
-          React.createElement('h1',{key:'t',style:{fontSize:24,fontWeight:900,marginBottom:6,background:'linear-gradient(135deg,#00e5ff,#d946ef)',backgroundClip:'text',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}},'IscoTech.Store'),
-          React.createElement('p',{key:'s',style:{color:'#8090b0',fontSize:13}},products.length+' productos disponibles')
-        ]),
-        products.length>0
-          ?React.createElement('div',{key:'grid',className:'grid'},
-            products.map(p=>
-              React.createElement('div',{key:p.id,className:'card product-card',onClick:()=>open(p)},[
-                p.photos?.[0]&&React.createElement('img',{key:'img',src:p.photos[0],className:'product-img'}),
-                p.photos?.length>1&&React.createElement('div',{key:'badge',style:{position:'absolute',top:8,right:8,background:'rgba(0,0,0,0.65)',color:'#fff',padding:'3px 7px',borderRadius:4,fontSize:10,fontWeight:700}},p.photos.length+' 📷'),
-                React.createElement('div',{key:'cnt',className:'product-content'},[
-                  React.createElement('h3',{key:'t',className:'product-title'},p.name||'Sin nombre'),
-                  React.createElement('div',{key:'pr',className:'product-price'},p.price||'—'),
-                  p.description&&React.createElement('p',{key:'d',className:'product-desc'},p.description)
-                ])
-              ])
-            )
-          )
-          :React.createElement('div',{key:'empty',style:{textAlign:'center',padding:'60px 20px',color:'#8090b0'}},[
-            React.createElement('div',{key:'ic',style:{fontSize:48,marginBottom:14,opacity:0.5}},'🏪'),
-            React.createElement('h3',{key:'t',style:{fontSize:16,fontWeight:700,marginBottom:8}},'Catálogo en construcción'),
-            React.createElement('p',{key:'s',style:{fontSize:13}},'Pronto nuevos productos')
-          ])
-      ]);
-    }
-
-    // ── APP ──
-    function App() {
-      const [user,setUser]=React.useState(null);
-      const [loading,setLoading]=React.useState(true);
-      const [route,setRoute]=React.useState(window.location.hash);
-
-      React.useEffect(()=>{
-        const unsub=auth.onAuthStateChanged((u)=>{setUser(u);setLoading(false);});
-        const onHash=()=>setRoute(window.location.hash);
-        window.addEventListener('hashchange',onHash);
-        return ()=>{unsub();window.removeEventListener('hashchange',onHash);};
-      },[]);
-
-      if(loading) return React.createElement('div',{style:{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}},
-        React.createElement('div',{style:{textAlign:'center'}},[
-          React.createElement('div',{key:'l',className:'logo',style:{margin:'0 auto 16px'}},'IT'),
-          React.createElement('div',{key:'sp',className:'loading'}),
-          React.createElement('p',{key:'t',style:{marginTop:14,color:'#8090b0',fontSize:13}},'IscoTech.Store')
-        ])
-      );
-
-      if(route==='#catalogo') return React.createElement(PublicCatalog);
-      if(user)                return React.createElement(AdminPanel,{user});
-      return React.createElement(LoginScreen);
-    }
-
-    ReactDOM.render(React.createElement(App), document.getElementById('root'));
-
-  } catch(err) {
-    console.error('App initialization error:', err);
-    document.getElementById('root').innerHTML=`
-      <div style="min-height:100vh;background:#080810;display:flex;align-items:center;justify-content:center;color:#e8edf8;text-align:center;padding:32px">
-        <div>
-          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#00e5ff,#d946ef);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#080810;margin:0 auto 20px">IT</div>
-          <h2 style="color:#ef4444;margin-bottom:12px;font-size:20px">Error de carga</h2>
-          <p style="color:#8090b0;margin-bottom:8px;font-size:13px">${err.message}</p>
-          <p style="color:#8090b0;margin-bottom:20px;font-size:13px">Verifica tu conexión y recarga</p>
-          <button onclick="location.reload()" style="padding:12px 28px;background:linear-gradient(135deg,#00e5ff,#d946ef);color:#080810;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:15px">Recargar</button>
-        </div>
-      </div>`;
-  }
+  return h('div', { className: 'lwrap' },
+    h('div', { className: 'fsec lcard' },
+      h('div', { className: 'logo', style: { margin: '0 auto 20px' } }, 'IT'),
+      h('h1', { style: { fontSize: 22, fontWeight: 900, marginBottom: 6, ...GS } }, 'IscoTech.Store'),
+      h('p',  { style: { color: '#8090b0', fontSize: 13, marginBottom: 24 } }, 'Panel de Administración'),
+      h('form', { onSubmit: submit },
+        h('input', { className: 'inp', type: 'email', placeholder: 'Email', value: email, onChange: e => setEmail(e.target.value), style: { marginBottom: 12 }, required: true, autoComplete: 'email' }),
+        h('input', { className: 'inp', type: 'password', placeholder: 'Contraseña', value: pass, onChange: e => setPass(e.target.value), style: { marginBottom: err ? 12 : 16 }, required: true, autoComplete: 'current-password' }),
+        err && h('p', { style: { color: '#ef4444', fontSize: 13, marginBottom: 14, textAlign: 'center' } }, err),
+        h('button', { className: 'btn btn-p', type: 'submit', disabled: busy, style: { width: '100%', padding: '13px' } }, busy ? 'Entrando…' : 'Iniciar Sesión')
+      )
+    )
+  );
 }
 
-// Esperar a que Firebase esté disponible (fix Safari / iOS / carga lenta)
-(function waitForFirebase(n) {
-  if (typeof firebase !== 'undefined' && typeof firebase.apps !== 'undefined') {
-    initApp();
-  } else if (n > 0) {
-    setTimeout(function(){ waitForFirebase(n-1); }, 150);
-  } else {
-    document.getElementById('root').innerHTML=`
-      <div style="min-height:100vh;background:#080810;display:flex;align-items:center;justify-content:center;color:#e8edf8;text-align:center;padding:32px">
-        <div>
-          <h2 style="color:#ef4444;margin-bottom:12px">Firebase no cargó</h2>
-          <p style="color:#8090b0;margin-bottom:20px;font-size:13px">Verifica tu conexión a internet</p>
-          <button onclick="location.reload()" style="padding:12px 28px;background:#00e5ff;color:#080810;border:none;border-radius:8px;font-weight:700;cursor:pointer">Recargar</button>
-        </div>
-      </div>`;
-  }
-}(30));
+// ═══════════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════════
+function Admin({ user }) {
+  const [prods,    setProds]    = useState([]);
+  const [loading,  setLoading]  = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editId,   setEditId]   = useState(null);
+  const [form,     setForm]     = useState({ name: '', price: '', description: '', photos: [] });
+
+  useEffect(() => {
+    const r = ref(db, 'products');
+    const cb = snap => {
+      const d = snap.val();
+      setProds(d ? Object.keys(d).map(k => ({ id: k, ...d[k] })).filter(p => !p.deleted) : []);
+      setLoading(false);
+    };
+    onValue(r, cb);
+    return () => off(r, 'value', cb);
+  }, []);
+
+  const reset = () => { setForm({ name: '', price: '', description: '', photos: [] }); setEditId(null); setShowForm(false); };
+
+  const startEdit = p => {
+    setForm({ name: p.name || '', price: p.price || '', description: p.description || '', photos: p.photos || [] });
+    setEditId(p.id); setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const del = async id => {
+    if (!confirm('¿Eliminar este producto?')) return;
+    try { await update(ref(db, 'products/' + id), { deleted: true }); }
+    catch { alert('Error al eliminar'); }
+  };
+
+  const save = async e => {
+    e.preventDefault();
+    const data = { ...form, updatedAt: Date.now(), deleted: false };
+    try {
+      if (editId) await update(ref(db, 'products/' + editId), data);
+      else        await push(ref(db, 'products'), data);
+      reset();
+    } catch { alert('Error al guardar'); }
+  };
+
+  const addPhotos = async e => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    try {
+      const imgs = await processImgs(files);
+      setForm(p => ({ ...p, photos: [...p.photos, ...imgs] }));
+    } catch { alert('Error procesando imágenes'); }
+    e.target.value = '';
+  };
+
+  if (loading) return h(Spinner);
+
+  return h('div', { className: 'container' },
+
+    // Header
+    h('div', { className: 'hdr' },
+      h('div', { className: 'brand' },
+        h('div', { className: 'logo' }, 'IT'),
+        h('div', {},
+          h('div', { className: 'btitle' }, 'IscoTech.Store'),
+          h('div', { className: 'bsub' }, prods.length + ' productos · ' + user.email)
+        )
+      ),
+      h('div', { className: 'hbtns' },
+        h('button', { className: 'btn btn-s', onClick: () => window.open(location.pathname + '#catalogo', '_blank') }, '🌐 Catálogo'),
+        h('button', { className: 'btn btn-p', onClick: () => { if (showForm) reset(); else { reset(); setShowForm(true); } } }, showForm ? 'Cancelar' : '+ Nuevo'),
+        h('button', { className: 'btn btn-s', onClick: () => signOut(auth) }, 'Salir')
+      )
+    ),
+
+    // Formulario
+    showForm && h('div', { className: 'fsec' },
+      h('form', { onSubmit: save },
+        h('h3', { style: { marginBottom: 14, fontSize: 16, fontWeight: 700, color: '#e8edf8' } }, (editId ? 'Editar' : 'Nuevo') + ' Producto'),
+        h('div', { className: 'fgrid' },
+          h('input', { className: 'inp', type: 'text', placeholder: 'Nombre del producto *', value: form.name, onChange: e => setForm(p => ({ ...p, name: e.target.value })), required: true }),
+          h('input', { className: 'inp', type: 'text', placeholder: 'Precio (ej: $150.000)', value: form.price, onChange: e => setForm(p => ({ ...p, price: e.target.value })) })
+        ),
+        h('textarea', { className: 'inp', placeholder: 'Descripción', value: form.description, onChange: e => setForm(p => ({ ...p, description: e.target.value })), style: { minHeight: 80, resize: 'vertical', marginBottom: 4 } }),
+        h('div', {},
+          h('div', { className: 'fphoto', onClick: () => document.getElementById('fi').click() },
+            h('input', { id: 'fi', type: 'file', accept: 'image/*', multiple: true, onChange: addPhotos, style: { display: 'none' } }),
+            h('p', { style: { color: '#00e5ff', fontSize: 14, fontWeight: 600 } }, '📷 Agregar fotos'),
+            h('p', { style: { color: '#8090b0', fontSize: 12, marginTop: 4 } }, 'Puedes seleccionar varias a la vez')
+          ),
+          form.photos.length > 0 && h('div', { className: 'fprev' },
+            form.photos.map((ph, i) =>
+              h('div', { key: i, className: 'fpi' },
+                h('img', { src: ph }),
+                h('button', { className: 'fpi-rm', type: 'button', onClick: () => setForm(p => ({ ...p, photos: p.photos.filter((_, j) => j !== i) })) }, '×')
+              )
+            )
+          )
+        ),
+        h('div', { style: { display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' } },
+          h('button', { className: 'btn btn-p', type: 'submit', style: { flex: 1, minWidth: 100 } }, editId ? 'Actualizar' : 'Crear'),
+          h('button', { className: 'btn btn-s', type: 'button', onClick: reset, style: { flex: 1, minWidth: 100 } }, 'Cancelar')
+        )
+      )
+    ),
+
+    // Lista de productos
+    h('div', {},
+      h('h2', { style: { fontSize: 15, fontWeight: 700, marginBottom: 12, color: '#e8edf8' } }, 'Productos (' + prods.length + ')'),
+      prods.length > 0
+        ? h('div', { className: 'grid' },
+            prods.map(p =>
+              h('div', { key: p.id, className: 'card pcard' },
+                p.photos?.[0] && h('img', { src: p.photos[0], className: 'pimg' }),
+                h('div', { className: 'pcont' },
+                  h('h4', { className: 'ptitle' }, p.name || 'Sin nombre'),
+                  h('div', { className: 'pprice' }, p.price || '—'),
+                  p.description && h('p', { className: 'pdesc' }, p.description)
+                ),
+                h('div', { className: 'acts' },
+                  h('button', { className: 'abtn abtn-e', onClick: ev => { ev.stopPropagation(); startEdit(p); } }, '✏️'),
+                  h('button', { className: 'abtn abtn-d', onClick: ev => { ev.stopPropagation(); del(p.id); } }, '🗑️')
+                )
+              )
+            )
+          )
+        : h('div', { style: { textAlign: 'center', padding: '40px 20px', color: '#8090b0' } },
+            h('div', { style: { fontSize: 42, marginBottom: 12, opacity: .5 } }, '📦'),
+            h('p', {}, 'Sin productos aún. Toca "+ Nuevo" para crear el primero.')
+          )
+    )
+  );
+}
+
+// ═══════════════════════════════════════════
+//  CATÁLOGO PÚBLICO
+// ═══════════════════════════════════════════
+function Catalog() {
+  const [prods,   setProds]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sel,     setSel]     = useState(null);
+  const [imgI,    setImgI]    = useState(0);
+
+  useEffect(() => {
+    const r = ref(db, 'products');
+    const cb = snap => {
+      const d = snap.val();
+      setProds(d ? Object.keys(d).map(k => ({ id: k, ...d[k] })).filter(p => !p.deleted) : []);
+      setLoading(false);
+    };
+    onValue(r, cb);
+    return () => off(r, 'value', cb);
+  }, []);
+
+  const open  = p => { setSel(p); setImgI(0); };
+  const close = () => { setSel(null); setImgI(0); };
+
+  if (loading) return h(Spinner);
+
+  // Modal detalle
+  if (sel) return h('div', { className: 'modal' },
+    h('div', { className: 'modal-c' },
+      h('button', { className: 'close-btn', onClick: close }, '×'),
+      h('div', { className: 'modal-imgs' },
+        sel.photos?.[0] && h('img', { className: 'mimg', src: sel.photos[imgI] || sel.photos[0] }),
+        sel.photos?.length > 1 && h('div', { className: 'mthumbs' },
+          sel.photos.map((ph, i) =>
+            h('img', { key: i, src: ph, className: 'mthumb' + (i === imgI ? ' on' : ''), onClick: () => setImgI(i) })
+          )
+        )
+      ),
+      h('div', { className: 'minfo' },
+        h('h1', { className: 'mtitle' }, sel.name || 'Sin nombre'),
+        h('div', { className: 'mprice' }, sel.price || '—'),
+        sel.description && h('p', { className: 'mdesc' }, sel.description),
+        h('button', { className: 'btn btn-p', onClick: close, style: { width: '100%' } }, '← Volver al catálogo')
+      )
+    )
+  );
+
+  // Grid
+  return h('div', { className: 'container' },
+    h('div', { style: { textAlign: 'center', padding: '30px 0 14px' } },
+      h('div', { className: 'logo', style: { margin: '0 auto 12px' } }, 'IT'),
+      h('h1', { style: { fontSize: 24, fontWeight: 900, marginBottom: 4, ...GS } }, 'IscoTech.Store'),
+      h('p',  { style: { color: '#8090b0', fontSize: 13 } }, prods.length + ' productos disponibles')
+    ),
+    prods.length > 0
+      ? h('div', { className: 'grid' },
+          prods.map(p =>
+            h('div', { key: p.id, className: 'card pcard', onClick: () => open(p) },
+              p.photos?.[0] && h('img', { src: p.photos[0], className: 'pimg' }),
+              p.photos?.length > 1 && h('div', { style: { position: 'absolute', top: 7, right: 7, background: 'rgba(0,0,0,.65)', color: '#fff', padding: '2px 7px', borderRadius: 4, fontSize: 10, fontWeight: 700 } }, p.photos.length + ' 📷'),
+              h('div', { className: 'pcont' },
+                h('h3', { className: 'ptitle' }, p.name || 'Sin nombre'),
+                h('div', { className: 'pprice' }, p.price || '—'),
+                p.description && h('p', { className: 'pdesc' }, p.description)
+              )
+            )
+          )
+        )
+      : h('div', { style: { textAlign: 'center', padding: '60px 20px', color: '#8090b0' } },
+          h('div', { style: { fontSize: 46, marginBottom: 12, opacity: .5 } }, '🏪'),
+          h('h3', { style: { fontSize: 16, fontWeight: 700, marginBottom: 8 } }, 'Catálogo en construcción'),
+          h('p',  { style: { fontSize: 13 } }, 'Pronto nuevos productos')
+        )
+  );
+}
+
+// ═══════════════════════════════════════════
+//  APP ROOT
+// ═══════════════════════════════════════════
+function App() {
+  const [user,    setUser]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [route,   setRoute]   = useState(location.hash);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, u => { setUser(u); setLoading(false); });
+    const sync  = () => setRoute(location.hash);
+    window.addEventListener('hashchange', sync);
+    return () => { unsub(); window.removeEventListener('hashchange', sync); };
+  }, []);
+
+  if (loading)            return h(Spinner);
+  if (route === '#catalogo') return h(Catalog);
+  if (user)               return h(Admin, { user });
+  return h(Login);
+}
+
+// Montar
+createRoot(document.getElementById('root')).render(h(App));
 </script>
 </body>
 </html>
