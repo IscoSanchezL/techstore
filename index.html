@@ -334,7 +334,7 @@ function initializeApp() {
         ]));
       }
 
-    // Admin Component with fixed editing system
+    // Admin Component - Simplified and robust
     function AdminPanel({ user }) {
       const [products, setProducts] = React.useState([]);
       const [loading, setLoading] = React.useState(true);
@@ -365,7 +365,6 @@ function initializeApp() {
       };
 
       const handleEdit = (product) => {
-        console.log('Editando producto:', product.id); // Debug
         setFormData({
           name: product.name || '',
           price: product.price || '',
@@ -375,19 +374,16 @@ function initializeApp() {
           specs: product.specs ? product.specs.join(', ') : '',
           photos: product.photos || []
         });
-        setEditingId(product.id); // IMPORTANTE: Guardar el ID
+        setEditingId(product.id);
         setShowForm(true);
       };
 
       const handleDelete = async (id) => {
         if (confirm('¿Eliminar este producto?')) {
           try {
-            // Marcar como eliminado en lugar de borrar completamente
             await db.ref('products/' + id).update({ deleted: true });
-            console.log('Producto marcado como eliminado:', id);
           } catch (error) {
-            console.error('Error al eliminar:', error);
-            alert('Error al eliminar el producto');
+            alert('Error al eliminar');
           }
         }
       };
@@ -399,29 +395,22 @@ function initializeApp() {
           ...formData, 
           specs, 
           updatedAt: Date.now(),
-          deleted: false // Asegurar que no esté marcado como eliminado
+          deleted: false
         };
 
         try {
           if (editingId) {
-            // ACTUALIZAR producto existente
-            console.log('Actualizando producto ID:', editingId);
             await db.ref('products/' + editingId).update(productData);
-            alert('Producto actualizado correctamente');
           } else {
-            // CREAR nuevo producto
-            console.log('Creando nuevo producto');
             await db.ref('products').push(productData);
-            alert('Producto creado correctamente');
           }
           resetForm();
         } catch (error) {
-          console.error('Error al guardar:', error);
-          alert('Error al guardar: ' + error.message);
+          alert('Error al guardar');
         }
       };
 
-      const handleMultiplePhotos = async (e) => {
+      const handlePhotoUpload = async (e) => {
         const files = Array.from(e.target.files);
         if (files.length > 0) {
           try {
@@ -443,28 +432,32 @@ function initializeApp() {
             background: '#080810',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            color: '#e8edf8'
           }
         }, React.createElement('div', {
           style: { textAlign: 'center' }
         }, [
+          React.createElement('div', { key: 'logo', className: 'logo', style: { margin: '0 auto 16px' } }, 'IT'),
           React.createElement('div', { key: 'spinner', className: 'loading' }),
           React.createElement('p', { key: 'text', style: { marginTop: 16, color: '#8090b0' } }, 'Cargando admin...')
         ]));
       }
 
       return React.createElement('div', {
-        style: { minHeight: '100vh', background: '#080810' }
+        style: { minHeight: '100vh', background: '#080810', color: '#e8edf8', padding: '20px' }
       }, React.createElement('div', {
-        style: { maxWidth: 1400, margin: '0 auto', padding: '20px' }
+        style: { maxWidth: 1200, margin: '0 auto' }
       }, [
-        // Header
+        // Header simple
         React.createElement('div', {
           key: 'header',
-          className: 'card',
-          style: { padding: '20px 24px', marginBottom: 24 }
-        }, React.createElement('div', {
           style: {
+            background: 'linear-gradient(145deg, #0a0f1a 0%, #1a1a2e 50%, #16213e 100%)',
+            border: '1px solid rgba(0,229,255,0.15)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 24,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -504,8 +497,12 @@ function initializeApp() {
               key: 'new',
               className: 'btn btn-primary',
               onClick: () => {
-                resetForm(); // Limpiar antes de mostrar formulario nuevo
-                setShowForm(true);
+                if (showForm) {
+                  resetForm();
+                } else {
+                  resetForm();
+                  setShowForm(true);
+                }
               }
             }, showForm ? '✕ Cancelar' : '+ Nuevo'),
             React.createElement('button', {
@@ -514,12 +511,18 @@ function initializeApp() {
               onClick: () => auth.signOut()
             }, 'Salir')
           ])
-        ])),
+        ]),
 
         // Formulario
         showForm && React.createElement('div', {
           key: 'form',
-          className: 'form-container'
+          style: {
+            background: 'linear-gradient(145deg, #0a0f1a 0%, #1a1a2e 50%, #16213e 100%)',
+            border: '1px solid rgba(0,229,255,0.15)',
+            borderRadius: 16,
+            padding: 24,
+            marginBottom: 24
+          }
         }, React.createElement('form', {
           onSubmit: handleSubmit
         }, [
@@ -527,19 +530,17 @@ function initializeApp() {
             key: 'title',
             style: {
               margin: '0 0 20px',
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: 800,
-              background: 'linear-gradient(135deg, #00e5ff, #d946ef)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
+              color: '#e8edf8'
             }
-          }, (editingId ? '✏️ Editando' : '✨ Nuevo') + ' Producto' + (editingId ? ' (ID: ' + editingId.substr(0,6) + '...)' : '')),
+          }, (editingId ? 'Editando' : 'Nuevo') + ' Producto'),
+          
           React.createElement('div', {
             key: 'grid1',
             style: {
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: 16,
               marginBottom: 16
             }
@@ -557,118 +558,92 @@ function initializeApp() {
               key: 'price',
               className: 'input',
               type: 'text',
-              placeholder: 'Precio (ej: $ 1.500.000)',
+              placeholder: 'Precio',
               value: formData.price,
               onChange: (e) => setFormData(prev => ({ ...prev, price: e.target.value }))
             })
           ]),
-          React.createElement('div', {
-            key: 'grid2',
-            style: {
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 16,
-              marginBottom: 16
-            }
-          }, [
-            React.createElement('input', {
-              key: 'oldprice',
-              className: 'input',
-              type: 'text',
-              placeholder: 'Precio anterior',
-              value: formData.oldPrice,
-              onChange: (e) => setFormData(prev => ({ ...prev, oldPrice: e.target.value }))
-            }),
-            React.createElement('select', {
-              key: 'badge',
-              className: 'input',
-              value: formData.badge,
-              onChange: (e) => setFormData(prev => ({ ...prev, badge: e.target.value }))
-            }, [
-              React.createElement('option', { key: 'none', value: '' }, 'Sin etiqueta'),
-              React.createElement('option', { key: 'new', value: 'NUEVO' }, 'NUEVO'),
-              React.createElement('option', { key: 'last', value: 'ÚLTIMO' }, 'ÚLTIMO'),
-              React.createElement('option', { key: 'promo', value: 'PROMOCIÓN' }, 'PROMOCIÓN')
-            ])
-          ]),
+
           React.createElement('textarea', {
             key: 'description',
             className: 'input',
-            placeholder: 'Descripción del producto',
+            placeholder: 'Descripción',
             value: formData.description,
             onChange: (e) => setFormData(prev => ({ ...prev, description: e.target.value })),
-            style: { width: '100%', minHeight: 80, marginBottom: 16, resize: 'vertical' }
+            style: { width: '100%', minHeight: 60, marginBottom: 16, resize: 'vertical' }
           }),
-          React.createElement('input', {
-            key: 'specs',
-            className: 'input',
-            type: 'text',
-            placeholder: 'Especificaciones separadas por comas',
-            value: formData.specs,
-            onChange: (e) => setFormData(prev => ({ ...prev, specs: e.target.value })),
-            style: { width: '100%', marginBottom: 16 }
-          }),
-          // Subida múltiple de fotos
+
           React.createElement('div', {
-            key: 'photos'
+            key: 'photos',
+            style: { marginBottom: 16 }
           }, [
             React.createElement('label', {
               key: 'label',
-              style: { display: 'block', marginBottom: 12, fontSize: 14, fontWeight: 700, color: '#e8edf8' }
-            }, '📸 Fotos (selecciona múltiples):'),
-            React.createElement('div', {
+              style: { display: 'block', marginBottom: 8, fontSize: 14, color: '#e8edf8' }
+            }, 'Fotos:'),
+            React.createElement('input', {
               key: 'upload',
-              className: 'upload-area',
-              onClick: () => document.getElementById('photo-input').click()
-            }, [
-              React.createElement('input', {
-                key: 'input',
-                id: 'photo-input',
-                type: 'file',
-                accept: 'image/*',
-                multiple: true,
-                onChange: handleMultiplePhotos,
-                style: { display: 'none' }
-              }),
-              React.createElement('p', {
-                key: 'text',
-                style: { color: '#00e5ff', fontSize: 14, fontWeight: 600 }
-              }, '📷 Haz clic para seleccionar múltiples fotos'),
-              React.createElement('p', {
-                key: 'hint',
-                style: { color: '#8090b0', fontSize: 12, marginTop: 4 }
-              }, 'Mantén Ctrl/Cmd para seleccionar varias imágenes')
-            ]),
+              type: 'file',
+              accept: 'image/*',
+              multiple: true,
+              onChange: handlePhotoUpload,
+              style: { marginBottom: 12, color: '#8090b0' }
+            }),
             formData.photos.length > 0 && React.createElement('div', {
-              key: 'grid',
-              className: 'photo-grid'
+              key: 'preview',
+              style: {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
+                gap: 8,
+                maxWidth: 400
+              }
             }, formData.photos.map((photo, i) =>
               React.createElement('div', {
                 key: i,
-                className: 'photo-item'
+                style: { position: 'relative' }
               }, [
                 React.createElement('img', {
                   key: 'img',
-                  src: photo
+                  src: photo,
+                  style: {
+                    width: '100%',
+                    height: 60,
+                    objectFit: 'cover',
+                    borderRadius: 6,
+                    border: '1px solid rgba(0,229,255,0.2)'
+                  }
                 }),
                 React.createElement('button', {
                   key: 'remove',
-                  className: 'photo-remove',
                   type: 'button',
-                  onClick: () => setFormData(prev => ({ ...prev, photos: prev.photos.filter((_, idx) => idx !== i) }))
+                  onClick: () => setFormData(prev => ({ ...prev, photos: prev.photos.filter((_, idx) => idx !== i) })),
+                  style: {
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: '#ef4444',
+                    color: '#fff',
+                    border: 'none',
+                    fontSize: 10,
+                    cursor: 'pointer'
+                  }
                 }, '×')
               ])
             ))
           ]),
+
           React.createElement('div', {
             key: 'buttons',
-            style: { display: 'flex', gap: 12, marginTop: 20 }
+            style: { display: 'flex', gap: 12 }
           }, [
             React.createElement('button', {
               key: 'submit',
               className: 'btn btn-primary',
               type: 'submit'
-            }, editingId ? '💾 Actualizar Producto' : '✨ Crear Producto'),
+            }, editingId ? 'Actualizar' : 'Crear'),
             React.createElement('button', {
               key: 'cancel',
               className: 'btn btn-secondary',
@@ -678,99 +653,127 @@ function initializeApp() {
           ])
         ])),
 
-        // Grid de productos
-        products.length > 0 ? React.createElement('div', {
-          key: 'products',
-          className: 'grid'
-        }, products.map(p =>
-          React.createElement('div', {
-            key: p.id,
-            className: 'card product-card'
-          }, [
-            p.photos?.[0] && React.createElement('img', {
-              key: 'image',
-              src: p.photos[0],
-              className: 'product-img',
-              loading: 'lazy'
-            }),
-            p.badge && React.createElement('div', {
-              key: 'badge',
-              className: 'badge badge-' + p.badge.toLowerCase()
-            }, p.badge),
-            React.createElement('div', {
-              key: 'actions',
-              className: 'actions'
-            }, [
-              React.createElement('button', {
-                key: 'edit',
-                className: 'action-btn edit-btn',
-                onClick: () => handleEdit(p),
-                title: 'Editar producto'
-              }, '✏️'),
-              React.createElement('button', {
-                key: 'delete',
-                className: 'action-btn delete-btn',
-                onClick: () => handleDelete(p.id),
-                title: 'Eliminar producto'
-              }, '🗑️')
-            ]),
-            React.createElement('div', {
-              key: 'content',
-              className: 'product-content'
-            }, [
-              React.createElement('h4', {
-                key: 'title',
-                className: 'product-title'
-              }, p.name || 'Sin nombre'),
-              React.createElement('div', {
-                key: 'prices',
-                style: { display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }
-              }, [
-                React.createElement('span', {
-                  key: 'current',
-                  className: 'product-price'
-                }, p.price || '—'),
-                p.oldPrice && React.createElement('span', {
-                  key: 'old',
-                  style: { fontSize: 14, color: '#6878a0', textDecoration: 'line-through' }
-                }, p.oldPrice)
-              ]),
-              p.description && React.createElement('p', {
-                key: 'description',
-                className: 'product-desc'
-              }, p.description),
-              React.createElement('small', {
-                key: 'id',
-                style: { 
-                  color: '#6878a0', 
-                  fontSize: 10, 
-                  display: 'block',
-                  marginTop: 8,
-                  fontFamily: 'monospace'
-                }
-              }, 'ID: ' + p.id.substr(0,8) + '...')
-            ])
-          ])
-        )) : React.createElement('div', {
-          key: 'empty',
-          style: {
-            textAlign: 'center',
-            padding: '60px 20px',
-            color: '#8090b0'
-          }
+        // Lista de productos
+        React.createElement('div', {
+          key: 'products-section'
         }, [
-          React.createElement('div', {
-            key: 'icon',
-            style: { fontSize: 48, marginBottom: 16, opacity: 0.6 }
-          }, '📦'),
-          React.createElement('h3', {
-            key: 'title',
-            style: { fontSize: 18, fontWeight: 700, marginBottom: 8 }
-          }, 'Sin productos'),
-          React.createElement('p', {
-            key: 'subtitle',
-            style: { fontSize: 14 }
-          }, 'Agrega el primer producto')
+          React.createElement('h2', {
+            key: 'products-title',
+            style: {
+              fontSize: 20,
+              fontWeight: 800,
+              marginBottom: 20,
+              color: '#e8edf8'
+            }
+          }, 'Productos (' + products.length + ')'),
+          
+          products.length > 0 ? React.createElement('div', {
+            key: 'products-grid',
+            style: {
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 20
+            }
+          }, products.map(p =>
+            React.createElement('div', {
+              key: p.id,
+              style: {
+                background: 'linear-gradient(145deg, #0a0f1a 0%, #1a1a2e 50%, #16213e 100%)',
+                border: '1px solid rgba(0,229,255,0.1)',
+                borderRadius: 12,
+                overflow: 'hidden',
+                position: 'relative'
+              }
+            }, [
+              p.photos?.[0] && React.createElement('img', {
+                key: 'image',
+                src: p.photos[0],
+                style: {
+                  width: '100%',
+                  height: 160,
+                  objectFit: 'cover'
+                }
+              }),
+              React.createElement('div', {
+                key: 'content',
+                style: { padding: 16 }
+              }, [
+                React.createElement('h4', {
+                  key: 'title',
+                  style: {
+                    margin: '0 0 8px',
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: '#e8edf8'
+                  }
+                }, p.name || 'Sin nombre'),
+                React.createElement('p', {
+                  key: 'price',
+                  style: {
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: '#00e5ff',
+                    margin: 0
+                  }
+                }, p.price || '—')
+              ]),
+              React.createElement('div', {
+                key: 'actions',
+                style: {
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  display: 'flex',
+                  gap: 4
+                }
+              }, [
+                React.createElement('button', {
+                  key: 'edit',
+                  onClick: () => handleEdit(p),
+                  style: {
+                    width: 28,
+                    height: 28,
+                    borderRadius: 6,
+                    border: 'none',
+                    background: 'rgba(0,229,255,0.8)',
+                    color: '#080810',
+                    fontSize: 12,
+                    cursor: 'pointer'
+                  }
+                }, '✏️'),
+                React.createElement('button', {
+                  key: 'delete',
+                  onClick: () => handleDelete(p.id),
+                  style: {
+                    width: 28,
+                    height: 28,
+                    borderRadius: 6,
+                    border: 'none',
+                    background: 'rgba(239,68,68,0.8)',
+                    color: '#fff',
+                    fontSize: 12,
+                    cursor: 'pointer'
+                  }
+                }, '🗑️')
+              ])
+            ])
+          )) : React.createElement('div', {
+            key: 'empty',
+            style: {
+              textAlign: 'center',
+              padding: 40,
+              color: '#8090b0'
+            }
+          }, [
+            React.createElement('div', {
+              key: 'icon',
+              style: { fontSize: 48, marginBottom: 16, opacity: 0.6 }
+            }, '📦'),
+            React.createElement('p', {
+              key: 'text',
+              style: { fontSize: 16 }
+            }, 'Sin productos aún')
+          ])
         ])
       ]));
     }
