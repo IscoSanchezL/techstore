@@ -407,7 +407,7 @@ function App(){
     return function(){unsub();window.removeEventListener('hashchange',sync);};
   },[]);
   if(loading[0]) return h(Spinner);
-  if(route[0]==='#catalogo') return h(Catalog);
+  if(route[0]==='#catalogo'||route[0].indexOf('#catalogo/')===0) return h(Catalog);
   if(user[0]) return h(Admin,{user:user[0]});
   return h(Login);
 }
