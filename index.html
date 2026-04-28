@@ -300,18 +300,57 @@ function Admin(props){
 /* CATALOGO */
 function Catalog(){
   var prods=React.useState([]),loading=React.useState(true),sel=React.useState(null),imgI=React.useState(0);
+
+  // Leer productos de Firebase
   React.useEffect(function(){
     var ref=db.ref('products');
     function cb(snap){
       var d=snap.val();
-      prods[1](d?Object.keys(d).map(function(k){var o={id:k};var v=d[k];Object.keys(v).forEach(function(x){o[x]=v[x];});return o;}).filter(function(p){return !p.deleted;}):[]);
+      var lista=d?Object.keys(d).map(function(k){var o={id:k};var v=d[k];Object.keys(v).forEach(function(x){o[x]=v[x];});return o;}).filter(function(p){return !p.deleted;}):[];
+      prods[1](lista);
       loading[1](false);
     }
     ref.on('value',cb);
     return function(){ref.off('value',cb);};
   },[]);
-  function open(p){sel[1](p);imgI[1](0);}
-  function close(){sel[1](null);imgI[1](0);}
+
+  // Sincronizar hash con producto seleccionado
+  React.useEffect(function(){
+    function onHash(){
+      var h=location.hash;
+      // formato: #catalogo/PRODUCT_ID
+      var m=h.match(/^#catalogo\/(.+)$/);
+      if(m){
+        // buscar en prods actuales
+        var found=prods[0].find(function(p){return p.id===m[1];});
+        if(found){sel[1](found);imgI[1](0);}
+        // si aun no cargaron, marcar id pendiente
+        else{ window.__pendingProductId=m[1]; }
+      } else {
+        sel[1](null);imgI[1](0);
+      }
+    }
+    window.addEventListener('hashchange',onHash);
+    onHash(); // ejecutar al montar
+    return function(){window.removeEventListener('hashchange',onHash);};
+  },[prods[0]]);
+
+  // Cuando cargan los productos, abrir el pendiente si hay
+  React.useEffect(function(){
+    if(window.__pendingProductId && prods[0].length>0){
+      var found=prods[0].find(function(p){return p.id===window.__pendingProductId;});
+      if(found){sel[1](found);imgI[1](0);window.__pendingProductId=null;}
+    }
+  },[prods[0]]);
+
+  function open(p){
+    location.hash='#catalogo/'+p.id;
+    sel[1](p);imgI[1](0);
+  }
+  function close(){
+    location.hash='#catalogo';
+    sel[1](null);imgI[1](0);
+  }
   if(loading[0]) return h(Spinner);
   if(sel[0]) return h('div',{className:'modal'},
     h('div',{className:'modal-c'},
@@ -326,7 +365,7 @@ function Catalog(){
         h('h1',{className:'mtitle'},sel[0].name||'Sin nombre'),
         h('div',{className:'mprice'},sel[0].price||'\u2014'),
         sel[0].description&&h('p',{className:'mdesc'},sel[0].description),
-        h('a',{className:'btn btn-wa',href:'https://wa.me/573113009439?text='+encodeURIComponent('Hola! Me interesa el producto: *'+(sel[0].name||'')+'*\n'+'Precio: '+(sel[0].price||'')+'\n'+'Link: https://iscosanchezl.github.io/techstore/#catalogo'),target:'_blank',rel:'noopener noreferrer',style:{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:10,textDecoration:'none',padding:'13px 18px'}},h('svg',{xmlns:'http://www.w3.org/2000/svg',width:22,height:22,viewBox:'0 0 32 32',fill:'#fff',style:{flexShrink:0}},h('path',{d:'M16 0C7.164 0 0 7.163 0 16c0 2.824.738 5.476 2.027 7.788L0 32l8.418-2.004A15.93 15.93 0 0016 32c8.836 0 16-7.163 16-16S24.836 0 16 0zm0 29.333a13.27 13.27 0 01-6.79-1.858l-.487-.29-5.003 1.192 1.22-4.863-.32-.5A13.257 13.257 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.27-9.778c-.398-.2-2.356-1.163-2.72-1.295-.365-.133-.63-.2-.896.2-.265.398-1.03 1.295-1.262 1.56-.232.266-.465.3-.863.1-.398-.2-1.682-.62-3.204-1.977-1.184-1.056-1.983-2.36-2.215-2.758-.232-.398-.025-.613.174-.81.179-.178.398-.465.597-.698.2-.232.265-.398.398-.664.133-.265.067-.498-.033-.698-.1-.2-.896-2.16-1.228-2.957-.323-.776-.65-.67-.896-.683-.232-.012-.498-.015-.763-.015-.265 0-.697.1-1.063.498-.365.398-1.394 1.362-1.394 3.322 0 1.96 1.427 3.854 1.626 4.12.2.265 2.808 4.287 6.803 6.014.951.41 1.693.655 2.271.839.954.304 1.823.261 2.51.158.765-.114 2.356-.963 2.688-1.893.332-.93.332-1.727.232-1.893-.1-.166-.365-.265-.763-.465z'})),'Consultar por WhatsApp'),
+        h('a',{className:'btn btn-wa',href:'https://wa.me/573113009439?text='+encodeURIComponent('Hola! Me interesa el producto: *'+(sel[0].name||'')+'*\n'+'Precio: '+(sel[0].price||'')+'\n'+'Link: https://iscosanchezl.github.io/techstore/#catalogo/'+sel[0].id),target:'_blank',rel:'noopener noreferrer',style:{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:10,textDecoration:'none',padding:'13px 18px'}},h('svg',{xmlns:'http://www.w3.org/2000/svg',width:22,height:22,viewBox:'0 0 32 32',fill:'#fff',style:{flexShrink:0}},h('path',{d:'M16 0C7.164 0 0 7.163 0 16c0 2.824.738 5.476 2.027 7.788L0 32l8.418-2.004A15.93 15.93 0 0016 32c8.836 0 16-7.163 16-16S24.836 0 16 0zm0 29.333a13.27 13.27 0 01-6.79-1.858l-.487-.29-5.003 1.192 1.22-4.863-.32-.5A13.257 13.257 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.27-9.778c-.398-.2-2.356-1.163-2.72-1.295-.365-.133-.63-.2-.896.2-.265.398-1.03 1.295-1.262 1.56-.232.266-.465.3-.863.1-.398-.2-1.682-.62-3.204-1.977-1.184-1.056-1.983-2.36-2.215-2.758-.232-.398-.025-.613.174-.81.179-.178.398-.465.597-.698.2-.232.265-.398.398-.664.133-.265.067-.498-.033-.698-.1-.2-.896-2.16-1.228-2.957-.323-.776-.65-.67-.896-.683-.232-.012-.498-.015-.763-.015-.265 0-.697.1-1.063.498-.365.398-1.394 1.362-1.394 3.322 0 1.96 1.427 3.854 1.626 4.12.2.265 2.808 4.287 6.803 6.014.951.41 1.693.655 2.271.839.954.304 1.823.261 2.51.158.765-.114 2.356-.963 2.688-1.893.332-.93.332-1.727.232-1.893-.1-.166-.365-.265-.763-.465z'})),'Consultar por WhatsApp'),
         h('button',{className:'btn btn-p',onClick:close,style:{width:'100%'}},'\u2190 Volver al cat\xe1logo')
       )
     )
