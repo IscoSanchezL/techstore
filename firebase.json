@@ -1,0 +1,28 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Robots-Tag", "value": "all" }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "!/robots.txt",
+        "destination": "/index.html"
+      },
+      {
+        "source": "!/Logo_Fnal1.webp",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
