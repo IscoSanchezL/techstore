@@ -207,10 +207,12 @@ function Login(){
 function Admin(props){
   var user=props.user;
   var prods=React.useState([]),loading=React.useState(true),showForm=React.useState(false),editId=React.useState(null);
-  var form=React.useState({name:'',price:'',description:'',photos:[],category:'',paused:false});
+  var form=React.useState({name:'',price:'',description:'',photos:[],category:'',paused:false,stock:''});
   var activeTab=React.useState('productos');
   var cats=React.useState([]);
-  var newCat=React.useState({name:'',color:'#00e5ff'});
+  var newCatName=React.useState('');
+  var newCatColor=React.useState('#00e5ff');
+  var stockEdit=React.useState(null); // {id, val} producto al que se ajusta stock
 
   React.useEffect(function(){
     var ref=db.ref('products');
@@ -234,37 +236,56 @@ function Admin(props){
   var activos=prods[0].filter(function(p){return !p.deleted;});
   var papelera=prods[0].filter(function(p){return p.deleted;});
 
-  function reset(){form[1]({name:'',price:'',description:'',photos:[],category:'',paused:false});editId[1](null);showForm[1](false);}
+  function reset(){form[1]({name:'',price:'',description:'',photos:[],category:'',paused:false,stock:''});editId[1](null);showForm[1](false);}
   function startEdit(p){
-    form[1]({name:p.name||'',price:p.price||'',description:p.description||'',photos:p.photos||[],category:p.category||'',paused:p.paused||false});
+    form[1]({name:p.name||'',price:p.price||'',description:p.description||'',photos:p.photos||[],category:p.category||'',paused:p.paused||false,stock:p.stock!=null?String(p.stock):''});
     editId[1](p.id);showForm[1](true);window.scrollTo({top:0,behavior:'smooth'});
   }
   function del(id){if(!confirm('\u00bfMover a papelera?')) return;db.ref('products/'+id).update({deleted:true}).catch(function(){alert('Error');});}
   function restore(id){db.ref('products/'+id).update({deleted:false}).catch(function(){alert('Error');});}
-  function delPermanent(id){if(!confirm('\u00bfEliminar definitivamente? No se puede recuperar.')) return;db.ref('products/'+id).remove().catch(function(){alert('Error');});}
+  function delPermanent(id){if(!confirm('\u00bfEliminar definitivamente?')) return;db.ref('products/'+id).remove().catch(function(){alert('Error');});}
   function togglePause(p){db.ref('products/'+p.id).update({paused:!p.paused}).catch(function(){alert('Error');});}
+
   function save(e){
     e.preventDefault();
     var f=form[0];
-    var data={name:f.name,price:f.price,description:f.description,photos:f.photos,category:f.category||'',paused:f.paused||false,updatedAt:Date.now(),deleted:false};
+    var stockVal=f.stock===''?null:parseInt(f.stock,10);
+    var data={name:f.name,price:f.price,description:f.description,photos:f.photos,category:f.category||'',paused:f.paused||false,stock:isNaN(stockVal)?null:stockVal,updatedAt:Date.now(),deleted:false};
     var p=editId[0]?db.ref('products/'+editId[0]).update(data):db.ref('products').push(data);
     p.then(function(){reset();}).catch(function(){alert('Error al guardar');});
   }
   function addPhotos(e){
     var files=Array.from(e.target.files);
     if(!files.length) return;
-    processImgs(files).then(function(imgs){
-      form[1](function(p){return Object.assign({},p,{photos:p.photos.concat(imgs)});});
-    }).catch(function(){alert('Error');});
+    processImgs(files).then(function(imgs){form[1](function(p){return Object.assign({},p,{photos:p.photos.concat(imgs)});});}).catch(function(){alert('Error');});
     e.target.value='';
   }
-  function saveCat(e){
-    e.preventDefault();
-    var nc=newCat[0];
-    if(!nc.name.trim()) return;
-    db.ref('categories').push({name:nc.name.trim(),color:nc.color}).then(function(){newCat[1]({name:'',color:'#00e5ff'});});
+
+  // Registrar venta: descuenta del stock
+  function registrarVenta(p, cantidad){
+    if(p.stock==null) return;
+    var nuevo=Math.max(0, p.stock - cantidad);
+    var updates={stock:nuevo};
+    if(nuevo===0) updates.paused=true; // auto-pausar si llega a 0
+    db.ref('products/'+p.id).update(updates).catch(function(){alert('Error');});
+  }
+
+  function saveCat(){
+    var nombre=newCatName[0].trim();
+    if(!nombre){alert('Escribe un nombre para la categor\u00eda');return;}
+    db.ref('categories').push({name:nombre,color:newCatColor[0]}).then(function(){
+      newCatName[1]('');newCatColor[1]('#00e5ff');
+    }).catch(function(){alert('Error al guardar categor\u00eda');});
   }
   function delCat(id){if(!confirm('\u00bfEliminar categor\u00eda?')) return;db.ref('categories/'+id).remove();}
+
+  // Color stock
+  function stockColor(p){
+    if(p.stock==null) return null;
+    if(p.stock===0) return '#ef4444';
+    if(p.stock<=3) return '#f59e0b';
+    return '#22c55e';
+  }
 
   if(loading[0]) return h('div',{className:'center'},h('div',{},h(LogoLg,{size:'180px',mb:'16px'}),h('div',{className:'spinner'}),h('p',{style:{marginTop:14,color:'#8090b0',fontSize:13}},'Cargando...')));
 
@@ -283,20 +304,26 @@ function Admin(props){
       h('button',{className:'tab'+(activeTab[0]==='papelera'?' on':''),onClick:function(){activeTab[1]('papelera');reset();}},'\ud83d\uddd1 Papelera'+(papelera.length>0?' ('+papelera.length+')':'')),
       h('button',{className:'tab'+(activeTab[0]==='categorias'?' on':''),onClick:function(){activeTab[1]('categorias');reset();}},'\ud83c\udff7 Categor\u00edas ('+cats[0].length+')')
     ),
+
+    // ── TAB PRODUCTOS ──
     activeTab[0]==='productos'&&h('div',{},
       showForm[0]&&h('div',{className:'fsec'},h('form',{onSubmit:save},
         h('h3',{style:{marginBottom:14,fontSize:16,fontWeight:700,color:'#e8edf8'}},(editId[0]?'Editar':'Nuevo')+' Producto'),
         h('div',{className:'fgrid'},
           h('input',{className:'inp',type:'text',placeholder:'Nombre *',value:f.name,onChange:function(e){form[1](function(p){return Object.assign({},p,{name:e.target.value});});},required:true}),
-          h('input',{className:'inp',type:'text',placeholder:'Precio',value:f.price,onChange:function(e){form[1](function(p){return Object.assign({},p,{price:e.target.value});}); }}),
+          h('input',{className:'inp',type:'text',placeholder:'Precio (ej: $150.000)',value:f.price,onChange:function(e){form[1](function(p){return Object.assign({},p,{price:e.target.value});}); }}),
           h('select',{className:'inp',value:f.category,onChange:function(e){form[1](function(p){return Object.assign({},p,{category:e.target.value});});}},
             h('option',{value:''},'-- Sin categor\u00eda --'),
             cats[0].map(function(c){return h('option',{key:c.id,value:c.id},c.name);})
           ),
-          h('label',{style:{display:'flex',alignItems:'center',gap:8,color:'#e8edf8',fontSize:14,cursor:'pointer',userSelect:'none'}},
-            h('input',{type:'checkbox',checked:f.paused,onChange:function(e){form[1](function(p){return Object.assign({},p,{paused:e.target.checked});});},style:{width:16,height:16}}),
-            'Pausar publicaci\u00f3n'
+          h('div',{style:{display:'flex',gap:8,alignItems:'center'}},
+            h('input',{className:'inp',type:'number',min:'0',placeholder:'Stock (unidades)',value:f.stock,onChange:function(e){form[1](function(p){return Object.assign({},p,{stock:e.target.value});});},style:{flex:1}}),
+            h('span',{style:{color:'#8090b0',fontSize:12,whiteSpace:'nowrap'}},'(vac\u00edo = sin l\u00edmite)')
           )
+        ),
+        h('label',{style:{display:'flex',alignItems:'center',gap:8,color:'#e8edf8',fontSize:14,cursor:'pointer',userSelect:'none',marginBottom:10}},
+          h('input',{type:'checkbox',checked:f.paused,onChange:function(e){form[1](function(p){return Object.assign({},p,{paused:e.target.checked});});},style:{width:16,height:16}}),
+          'Pausar publicaci\u00f3n'
         ),
         h('textarea',{className:'inp',placeholder:'Descripci\u00f3n',value:f.description,onChange:function(e){form[1](function(p){return Object.assign({},p,{description:e.target.value});});},style:{minHeight:80,resize:'vertical',marginBottom:4}}),
         h('div',{},
@@ -312,11 +339,29 @@ function Admin(props){
           h('button',{className:'btn btn-s',type:'button',onClick:reset,style:{flex:1,minWidth:100}},'Cancelar')
         )
       )),
+
+      // Modal registrar venta
+      stockEdit[0]&&h('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:500,display:'flex',alignItems:'center',justifyContent:'center',padding:20}},
+        h('div',{className:'fsec',style:{width:'100%',maxWidth:340,textAlign:'center'}},
+          h('p',{style:{color:'#e8edf8',fontWeight:700,fontSize:16,marginBottom:4}},'\ud83d\udce6 Registrar venta'),
+          h('p',{style:{color:'#8090b0',fontSize:13,marginBottom:16}},stockEdit[0].name+' \u2014 Stock actual: '+(stockEdit[0].stock!=null?stockEdit[0].stock:'sin l\u00edmite')),
+          h('p',{style:{color:'#8090b0',fontSize:13,marginBottom:8}},'Unidades vendidas:'),
+          h('div',{style:{display:'flex',gap:8,justifyContent:'center',flexWrap:'wrap'}},
+            [1,2,3,5,10].map(function(n){
+              return h('button',{key:n,className:'btn btn-s',style:{minWidth:50},
+                onClick:function(){registrarVenta(stockEdit[0],n);stockEdit[1](null);}},'-'+n);
+            })
+          ),
+          h('button',{className:'btn btn-s',style:{width:'100%',marginTop:12},onClick:function(){stockEdit[1](null);}},'Cancelar')
+        )
+      ),
+
       h('div',{},
         h('h2',{style:{fontSize:15,fontWeight:700,marginBottom:12,color:'#e8edf8'}},'Productos ('+activos.length+')'),
         activos.length>0
           ?h('div',{className:'grid'},activos.map(function(p){
             var cat=cats[0].find(function(c){return c.id===p.category;});
+            var sc=stockColor(p);
             return h('div',{key:p.id,className:'card pcard',style:{opacity:p.paused?0.55:1}},
               p.paused&&h('div',{className:'badge-paused'},'\u23f8 PAUSADO'),
               p.photos&&p.photos[0]&&h('img',{src:p.photos[0],className:'pimg'}),
@@ -324,9 +369,16 @@ function Admin(props){
                 h('h4',{className:'ptitle'},p.name||'Sin nombre'),
                 h('div',{className:'pprice'},p.price||'\u2014'),
                 p.description&&h('p',{className:'pdesc'},p.description),
-                cat&&h('span',{className:'cat-tag',style:{borderColor:cat.color,color:cat.color,background:cat.color+'22'}},cat.name)
+                h('div',{style:{display:'flex',gap:6,flexWrap:'wrap',marginTop:5,alignItems:'center'}},
+                  cat&&h('span',{className:'cat-tag',style:{borderColor:cat.color,color:cat.color,background:cat.color+'22'}},cat.name),
+                  p.stock!=null&&h('span',{style:{fontSize:11,fontWeight:700,color:sc,background:sc+'22',border:'1px solid '+sc+'55',borderRadius:20,padding:'2px 8px'}},
+                    p.stock===0?'Sin stock':'Stock: '+p.stock
+                  )
+                )
               ),
               h('div',{className:'acts'},
+                p.stock!=null&&h('button',{className:'abtn',style:{background:'rgba(99,102,241,.85)',fontSize:13},
+                  onClick:function(ev){ev.stopPropagation();stockEdit[1](p);},title:'Registrar venta'},'\ud83d\udce6'),
                 h('button',{className:'abtn',style:{background:p.paused?'rgba(34,197,94,.85)':'rgba(251,191,36,.85)'},onClick:function(ev){ev.stopPropagation();togglePause(p);},title:p.paused?'Activar':'Pausar'},p.paused?'\u25b6':'\u23f8'),
                 h('button',{className:'abtn abtn-e',onClick:function(ev){ev.stopPropagation();startEdit(p);}},'\u270f\ufe0f'),
                 h('button',{className:'abtn abtn-d',onClick:function(ev){ev.stopPropagation();del(p.id);}},'\ud83d\uddd1\ufe0f')
@@ -336,6 +388,8 @@ function Admin(props){
           :h('div',{style:{textAlign:'center',padding:'40px 20px',color:'#8090b0'}},h('div',{style:{fontSize:42,marginBottom:12,opacity:.5}},'\ud83d\udce6'),h('p',{},'Sin productos.'))
       )
     ),
+
+    // ── TAB PAPELERA ──
     activeTab[0]==='papelera'&&h('div',{},
       h('h2',{style:{fontSize:15,fontWeight:700,marginBottom:12,color:'#e8edf8'}},'Papelera ('+papelera.length+')'),
       papelera.length>0
@@ -351,18 +405,21 @@ function Admin(props){
         }))
         :h('div',{style:{textAlign:'center',padding:'40px 20px',color:'#8090b0'}},h('div',{style:{fontSize:42,marginBottom:12,opacity:.5}},'\ud83d\uddd1'),h('p',{},'La papelera est\u00e1 vac\u00eda.'))
     ),
+
+    // ── TAB CATEGORIAS ──
     activeTab[0]==='categorias'&&h('div',{},
       h('div',{className:'fsec'},
         h('h3',{style:{marginBottom:14,fontSize:16,fontWeight:700,color:'#e8edf8'}},'Nueva Categor\u00eda'),
-        h('form',{onSubmit:saveCat},
-          h('div',{style:{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}},
-            h('input',{className:'inp',style:{flex:1,minWidth:140},type:'text',placeholder:'Nombre de categor\u00eda',value:newCat[0].name,onChange:function(e){newCat[1](function(p){return {name:e.target.value,color:p.color};});},required:true}),
-            h('div',{style:{display:'flex',alignItems:'center',gap:6}},
-              h('label',{style:{color:'#8090b0',fontSize:13}},'Color:'),
-              h('input',{type:'color',value:newCat[0].color,onChange:function(e){newCat[1](function(p){return {name:p.name,color:e.target.value};});},style:{width:40,height:36,border:'none',background:'none',cursor:'pointer',padding:0}})
-            ),
-            h('button',{className:'btn btn-p',type:'submit'},'+ Agregar')
-          )
+        h('div',{style:{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}},
+          h('input',{className:'inp',style:{flex:1,minWidth:140},type:'text',placeholder:'Nombre de categor\u00eda',
+            value:newCatName[0],
+            onChange:function(e){newCatName[1](e.target.value);},
+            onKeyDown:function(e){if(e.key==='Enter'){e.preventDefault();saveCat();}}}),
+          h('div',{style:{display:'flex',alignItems:'center',gap:6}},
+            h('label',{style:{color:'#8090b0',fontSize:13}},'Color:'),
+            h('input',{type:'color',value:newCatColor[0],onChange:function(e){newCatColor[1](e.target.value);},style:{width:40,height:36,border:'none',background:'none',cursor:'pointer',padding:0}})
+          ),
+          h('button',{className:'btn btn-p',type:'button',onClick:saveCat},'+ Agregar')
         )
       ),
       h('div',{},
