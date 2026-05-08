@@ -91,7 +91,13 @@ body{background:#020610;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   .hbtns .btn-s:last-child{grid-column:span 2}
 }
 .lwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.badge-nostock{position:absolute;top:0;left:0;right:0;background:rgba(239,68,68,.92);color:#fff;font-size:11px;font-weight:800;text-align:center;padding:4px;letter-spacing:.5px}
+.pcard-nostock{cursor:default!important}
+@media(hover:hover){.pcard-nostock:hover{transform:none!important}}
 .badge-paused{position:absolute;top:0;left:0;right:0;background:rgba(251,191,36,.92);color:#080810;font-size:11px;font-weight:800;text-align:center;padding:4px;letter-spacing:.5px}
+.badge-nostock{position:absolute;top:0;left:0;right:0;background:rgba(239,68,68,.92);color:#fff;font-size:11px;font-weight:800;text-align:center;padding:4px;letter-spacing:.5px}
+.pcard-nostock{cursor:default!important;}
+.pcard-nostock:hover{transform:none!important;}
 .tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1)}
 .tab{padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;color:#8090b0;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
 .tab.on{color:#00e5ff;border-bottom-color:#00e5ff}
@@ -523,12 +529,15 @@ function Catalog(){
     prods[0].length>0
       ?h('div',{className:'grid'},
         prods[0].map(function(p){
-          return h('div',{key:p.id,className:'card pcard',onClick:function(){open(p);}},
-            p.photos&&p.photos[0]&&h('img',{src:p.photos[0],className:'pimg'}),
-            p.photos&&p.photos.length>1&&h('div',{style:{position:'absolute',top:7,right:7,background:'rgba(0,0,0,.65)',color:'#fff',padding:'3px 7px',borderRadius:4,fontSize:10,fontWeight:700}},p.photos.length+' 📷'),
+          var agotado=p.paused||(p.stock!=null&&p.stock===0);
+          return h('div',{key:p.id,className:'card pcard'+(agotado?' pcard-nostock':''),
+            onClick:agotado?undefined:function(){open(p);},style:agotado?{opacity:.72}:{}},
+            agotado&&h('div',{className:'badge-nostock'},'\u274c SIN STOCK'),
+            p.photos&&p.photos[0]&&h('img',{src:p.photos[0],className:'pimg',style:agotado?{filter:'grayscale(.5)'}:{}}),
+            p.photos&&p.photos.length>1&&h('div',{style:{position:'absolute',top:agotado?26:7,right:7,background:'rgba(0,0,0,.65)',color:'#fff',padding:'3px 7px',borderRadius:4,fontSize:10,fontWeight:700}},p.photos.length+' \xf0\x9f\x93\xb7'),
             h('div',{className:'pcont'},
               h('h3',{className:'ptitle'},p.name||'Sin nombre'),
-              h('div',{className:'pprice'},p.price||'\u2014'),
+              agotado?h('div',{style:{fontSize:13,fontWeight:700,color:'#ef4444',marginTop:2}},'Sin stock disponible'):h('div',{className:'pprice'},p.price||'\u2014'),
               p.description&&h('p',{className:'pdesc'},p.description)
             )
           );
