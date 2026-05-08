@@ -91,6 +91,15 @@ body{background:#020610;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   .hbtns .btn-s:last-child{grid-column:span 2}
 }
 .lwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.badge-paused{position:absolute;top:0;left:0;right:0;background:rgba(251,191,36,.92);color:#080810;font-size:11px;font-weight:800;text-align:center;padding:4px;letter-spacing:.5px}
+.tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.tab{padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;color:#8090b0;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.tab.on{color:#00e5ff;border-bottom-color:#00e5ff}
+.cat-tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(0,229,255,.15);color:#00e5ff;border:1px solid rgba(0,229,255,.3);margin-top:5px}
+.cat-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.cat-item{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1)}
+.cat-color{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.inp-sm{padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#e8edf8;outline:none;font-family:inherit;font-size:14px}
 .lcard{width:100%;max-width:380px;text-align:center}
 </style>
 </head>
@@ -198,31 +207,46 @@ function Login(){
 function Admin(props){
   var user=props.user;
   var prods=React.useState([]),loading=React.useState(true),showForm=React.useState(false),editId=React.useState(null);
-  var form=React.useState({name:'',price:'',description:'',photos:[]});
+  var form=React.useState({name:'',price:'',description:'',photos:[],category:'',paused:false});
+  var activeTab=React.useState('productos');
+  var cats=React.useState([]);
+  var newCat=React.useState({name:'',color:'#00e5ff'});
+
   React.useEffect(function(){
     var ref=db.ref('products');
     function cb(snap){
       var d=snap.val();
-      prods[1](d?Object.keys(d).map(function(k){var o={id:k};var v=d[k];Object.keys(v).forEach(function(x){o[x]=v[x];});return o;}).filter(function(p){return !p.deleted;}):[]);
-      loading[1](false);
+      var lista=d?Object.keys(d).map(function(k){var o={id:k};var v=d[k];Object.keys(v).forEach(function(x){o[x]=v[x];});return o;}):[];
+      prods[1](lista);loading[1](false);
     }
-    ref.on('value',cb);
-    return function(){ref.off('value',cb);};
+    ref.on('value',cb);return function(){ref.off('value',cb);};
   },[]);
-  function reset(){form[1]({name:'',price:'',description:'',photos:[]});editId[1](null);showForm[1](false);}
+
+  React.useEffect(function(){
+    var ref=db.ref('categories');
+    function cb(snap){
+      var d=snap.val();
+      cats[1](d?Object.keys(d).map(function(k){return {id:k,name:d[k].name,color:d[k].color||'#00e5ff'};}):[]);
+    }
+    ref.on('value',cb);return function(){ref.off('value',cb);};
+  },[]);
+
+  var activos=prods[0].filter(function(p){return !p.deleted;});
+  var papelera=prods[0].filter(function(p){return p.deleted;});
+
+  function reset(){form[1]({name:'',price:'',description:'',photos:[],category:'',paused:false});editId[1](null);showForm[1](false);}
   function startEdit(p){
-    form[1]({name:p.name||'',price:p.price||'',description:p.description||'',photos:p.photos||[]});
-    editId[1](p.id);showForm[1](true);
-    window.scrollTo({top:0,behavior:'smooth'});
+    form[1]({name:p.name||'',price:p.price||'',description:p.description||'',photos:p.photos||[],category:p.category||'',paused:p.paused||false});
+    editId[1](p.id);showForm[1](true);window.scrollTo({top:0,behavior:'smooth'});
   }
-  function del(id){
-    if(!confirm('\xbfEliminar este producto?')) return;
-    db.ref('products/'+id).update({deleted:true}).catch(function(){alert('Error al eliminar');});
-  }
+  function del(id){if(!confirm('\u00bfMover a papelera?')) return;db.ref('products/'+id).update({deleted:true}).catch(function(){alert('Error');});}
+  function restore(id){db.ref('products/'+id).update({deleted:false}).catch(function(){alert('Error');});}
+  function delPermanent(id){if(!confirm('\u00bfEliminar definitivamente? No se puede recuperar.')) return;db.ref('products/'+id).remove().catch(function(){alert('Error');});}
+  function togglePause(p){db.ref('products/'+p.id).update({paused:!p.paused}).catch(function(){alert('Error');});}
   function save(e){
     e.preventDefault();
     var f=form[0];
-    var data={name:f.name,price:f.price,description:f.description,photos:f.photos,updatedAt:Date.now(),deleted:false};
+    var data={name:f.name,price:f.price,description:f.description,photos:f.photos,category:f.category||'',paused:f.paused||false,updatedAt:Date.now(),deleted:false};
     var p=editId[0]?db.ref('products/'+editId[0]).update(data):db.ref('products').push(data);
     p.then(function(){reset();}).catch(function(){alert('Error al guardar');});
   }
@@ -230,85 +254,136 @@ function Admin(props){
     var files=Array.from(e.target.files);
     if(!files.length) return;
     processImgs(files).then(function(imgs){
-      form[1](function(p){return {name:p.name,price:p.price,description:p.description,photos:p.photos.concat(imgs)};});
-    }).catch(function(){alert('Error procesando im\xe1genes');});
+      form[1](function(p){return Object.assign({},p,{photos:p.photos.concat(imgs)});});
+    }).catch(function(){alert('Error');});
     e.target.value='';
   }
-  if(loading[0]) return h(Spinner);
+  function saveCat(e){
+    e.preventDefault();
+    var nc=newCat[0];
+    if(!nc.name.trim()) return;
+    db.ref('categories').push({name:nc.name.trim(),color:nc.color}).then(function(){newCat[1]({name:'',color:'#00e5ff'});});
+  }
+  function delCat(id){if(!confirm('\u00bfEliminar categor\u00eda?')) return;db.ref('categories/'+id).remove();}
+
+  if(loading[0]) return h('div',{className:'center'},h('div',{},h(LogoLg,{size:'180px',mb:'16px'}),h('div',{className:'spinner'}),h('p',{style:{marginTop:14,color:'#8090b0',fontSize:13}},'Cargando...')));
+
   var f=form[0];
   return h('div',{className:'container'},
     h('div',{className:'hdr'},
-      h('div',{className:'brand'},
-        h(LogoSm),
-        h('div',{},
-          h('div',{className:'btitle'},'IscoTech.Store'),
-          h('div',{className:'bsub'},prods[0].length+' productos \xb7 '+user.email)
-        )
-      ),
+      h('div',{className:'brand'},h(LogoSm),h('div',{},h('div',{className:'btitle'},'IscoTech.Store'),h('div',{className:'bsub'},activos.length+' activos \u00b7 '+user.email))),
       h('div',{className:'hbtns'},
-        h('button',{className:'btn btn-s',onClick:function(){window.open(location.pathname+'#catalogo','_blank');}},'🌐 Cat\xe1logo'),
-        h('button',{className:'btn btn-p',onClick:function(){if(showForm[0])reset();else{reset();showForm[1](true);}}},showForm[0]?'Cancelar':'+ Nuevo'),
+        h('button',{className:'btn btn-s',onClick:function(){window.open(location.pathname+'#catalogo','_blank');}},'\ud83c\udf10 Cat\u00e1logo'),
+        h('button',{className:'btn btn-p',onClick:function(){if(showForm[0])reset();else{reset();showForm[1](true);activeTab[1]('productos');}}},showForm[0]?'Cancelar':'+ Nuevo'),
         h('button',{className:'btn btn-s',onClick:function(){auth.signOut();}},'Salir')
       )
     ),
-    showForm[0]&&h('div',{className:'fsec'},
-      h('form',{onSubmit:save},
+    h('div',{className:'tabs'},
+      h('button',{className:'tab'+(activeTab[0]==='productos'?' on':''),onClick:function(){activeTab[1]('productos');reset();}},'Productos ('+activos.length+')'),
+      h('button',{className:'tab'+(activeTab[0]==='papelera'?' on':''),onClick:function(){activeTab[1]('papelera');reset();}},'\ud83d\uddd1 Papelera'+(papelera.length>0?' ('+papelera.length+')':'')),
+      h('button',{className:'tab'+(activeTab[0]==='categorias'?' on':''),onClick:function(){activeTab[1]('categorias');reset();}},'\ud83c\udff7 Categor\u00edas ('+cats[0].length+')')
+    ),
+    activeTab[0]==='productos'&&h('div',{},
+      showForm[0]&&h('div',{className:'fsec'},h('form',{onSubmit:save},
         h('h3',{style:{marginBottom:14,fontSize:16,fontWeight:700,color:'#e8edf8'}},(editId[0]?'Editar':'Nuevo')+' Producto'),
         h('div',{className:'fgrid'},
-          h('input',{className:'inp',type:'text',placeholder:'Nombre *',value:f.name,onChange:function(e){form[1](function(p){return {name:e.target.value,price:p.price,description:p.description,photos:p.photos};});},required:true}),
-          h('input',{className:'inp',type:'text',placeholder:'Precio',value:f.price,onChange:function(e){form[1](function(p){return {name:p.name,price:e.target.value,description:p.description,photos:p.photos};});}})
+          h('input',{className:'inp',type:'text',placeholder:'Nombre *',value:f.name,onChange:function(e){form[1](function(p){return Object.assign({},p,{name:e.target.value});});},required:true}),
+          h('input',{className:'inp',type:'text',placeholder:'Precio',value:f.price,onChange:function(e){form[1](function(p){return Object.assign({},p,{price:e.target.value});}); }}),
+          h('select',{className:'inp',value:f.category,onChange:function(e){form[1](function(p){return Object.assign({},p,{category:e.target.value});});}},
+            h('option',{value:''},'-- Sin categor\u00eda --'),
+            cats[0].map(function(c){return h('option',{key:c.id,value:c.id},c.name);})
+          ),
+          h('label',{style:{display:'flex',alignItems:'center',gap:8,color:'#e8edf8',fontSize:14,cursor:'pointer',userSelect:'none'}},
+            h('input',{type:'checkbox',checked:f.paused,onChange:function(e){form[1](function(p){return Object.assign({},p,{paused:e.target.checked});});},style:{width:16,height:16}}),
+            'Pausar publicaci\u00f3n'
+          )
         ),
-        h('textarea',{className:'inp',placeholder:'Descripci\xf3n',value:f.description,onChange:function(e){form[1](function(p){return {name:p.name,price:p.price,description:e.target.value,photos:p.photos};});},style:{minHeight:80,resize:'vertical',marginBottom:4}}),
+        h('textarea',{className:'inp',placeholder:'Descripci\u00f3n',value:f.description,onChange:function(e){form[1](function(p){return Object.assign({},p,{description:e.target.value});});},style:{minHeight:80,resize:'vertical',marginBottom:4}}),
         h('div',{},
           h('div',{className:'fphoto',onClick:function(){document.getElementById('fi').click();}},
             h('input',{id:'fi',type:'file',accept:'image/*',multiple:true,onChange:addPhotos,style:{display:'none'}}),
-            h('p',{style:{color:'#00e5ff',fontSize:14,fontWeight:600}},'📷 Agregar fotos'),
+            h('p',{style:{color:'#00e5ff',fontSize:14,fontWeight:600}},'\ud83d\udcf7 Agregar fotos'),
             h('p',{style:{color:'#8090b0',fontSize:12,marginTop:4}},'Puedes seleccionar varias a la vez')
           ),
-          f.photos.length>0&&h('div',{className:'fprev'},
-            f.photos.map(function(ph,i){
-              return h('div',{key:i,className:'fpi'},
-                h('img',{src:ph}),
-                h('button',{className:'fpi-rm',type:'button',onClick:function(){
-                  var idx=i;
-                  form[1](function(p){return {name:p.name,price:p.price,description:p.description,photos:p.photos.filter(function(_,j){return j!==idx;})};});
-                }},'×')
-              );
-            })
-          )
+          f.photos.length>0&&h('div',{className:'fprev'},f.photos.map(function(ph,i){return h('div',{key:i,className:'fpi'},h('img',{src:ph}),h('button',{className:'fpi-rm',type:'button',onClick:function(){var idx=i;form[1](function(p){return Object.assign({},p,{photos:p.photos.filter(function(_,j){return j!==idx;})});});}},'\xd7'));}))
         ),
         h('div',{style:{display:'flex',gap:10,marginTop:14,flexWrap:'wrap'}},
           h('button',{className:'btn btn-p',type:'submit',style:{flex:1,minWidth:100}},editId[0]?'Actualizar':'Crear'),
           h('button',{className:'btn btn-s',type:'button',onClick:reset,style:{flex:1,minWidth:100}},'Cancelar')
         )
-      )
-    ),
-    h('div',{},
-      h('h2',{style:{fontSize:15,fontWeight:700,marginBottom:12,color:'#e8edf8'}},'Productos ('+prods[0].length+')'),
-      prods[0].length>0
-        ?h('div',{className:'grid'},
-          prods[0].map(function(p){
-            return h('div',{key:p.id,className:'card pcard'},
+      )),
+      h('div',{},
+        h('h2',{style:{fontSize:15,fontWeight:700,marginBottom:12,color:'#e8edf8'}},'Productos ('+activos.length+')'),
+        activos.length>0
+          ?h('div',{className:'grid'},activos.map(function(p){
+            var cat=cats[0].find(function(c){return c.id===p.category;});
+            return h('div',{key:p.id,className:'card pcard',style:{opacity:p.paused?0.55:1}},
+              p.paused&&h('div',{className:'badge-paused'},'\u23f8 PAUSADO'),
               p.photos&&p.photos[0]&&h('img',{src:p.photos[0],className:'pimg'}),
               h('div',{className:'pcont'},
                 h('h4',{className:'ptitle'},p.name||'Sin nombre'),
                 h('div',{className:'pprice'},p.price||'\u2014'),
-                p.description&&h('p',{className:'pdesc'},p.description)
+                p.description&&h('p',{className:'pdesc'},p.description),
+                cat&&h('span',{className:'cat-tag',style:{borderColor:cat.color,color:cat.color,background:cat.color+'22'}},cat.name)
               ),
               h('div',{className:'acts'},
-                h('button',{className:'abtn abtn-e',onClick:function(ev){ev.stopPropagation();startEdit(p);}},'✏️'),
-                h('button',{className:'abtn abtn-d',onClick:function(ev){ev.stopPropagation();del(p.id);}},'🗑️')
+                h('button',{className:'abtn',style:{background:p.paused?'rgba(34,197,94,.85)':'rgba(251,191,36,.85)'},onClick:function(ev){ev.stopPropagation();togglePause(p);},title:p.paused?'Activar':'Pausar'},p.paused?'\u25b6':'\u23f8'),
+                h('button',{className:'abtn abtn-e',onClick:function(ev){ev.stopPropagation();startEdit(p);}},'\u270f\ufe0f'),
+                h('button',{className:'abtn abtn-d',onClick:function(ev){ev.stopPropagation();del(p.id);}},'\ud83d\uddd1\ufe0f')
               )
             );
-          })
+          }))
+          :h('div',{style:{textAlign:'center',padding:'40px 20px',color:'#8090b0'}},h('div',{style:{fontSize:42,marginBottom:12,opacity:.5}},'\ud83d\udce6'),h('p',{},'Sin productos.'))
+      )
+    ),
+    activeTab[0]==='papelera'&&h('div',{},
+      h('h2',{style:{fontSize:15,fontWeight:700,marginBottom:12,color:'#e8edf8'}},'Papelera ('+papelera.length+')'),
+      papelera.length>0
+        ?h('div',{className:'grid'},papelera.map(function(p){
+          return h('div',{key:p.id,className:'card pcard',style:{opacity:.5}},
+            p.photos&&p.photos[0]&&h('img',{src:p.photos[0],className:'pimg',style:{filter:'grayscale(1)'}}),
+            h('div',{className:'pcont'},h('h4',{className:'ptitle'},p.name||'Sin nombre'),h('div',{className:'pprice'},p.price||'\u2014')),
+            h('div',{className:'acts',style:{opacity:1}},
+              h('button',{className:'abtn',style:{background:'rgba(34,197,94,.85)',fontSize:12},onClick:function(ev){ev.stopPropagation();restore(p.id);},title:'Restaurar'},'\u21ba'),
+              h('button',{className:'abtn abtn-d',onClick:function(ev){ev.stopPropagation();delPermanent(p.id);},title:'Eliminar permanente'},'\u274c')
+            )
+          );
+        }))
+        :h('div',{style:{textAlign:'center',padding:'40px 20px',color:'#8090b0'}},h('div',{style:{fontSize:42,marginBottom:12,opacity:.5}},'\ud83d\uddd1'),h('p',{},'La papelera est\u00e1 vac\u00eda.'))
+    ),
+    activeTab[0]==='categorias'&&h('div',{},
+      h('div',{className:'fsec'},
+        h('h3',{style:{marginBottom:14,fontSize:16,fontWeight:700,color:'#e8edf8'}},'Nueva Categor\u00eda'),
+        h('form',{onSubmit:saveCat},
+          h('div',{style:{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}},
+            h('input',{className:'inp',style:{flex:1,minWidth:140},type:'text',placeholder:'Nombre de categor\u00eda',value:newCat[0].name,onChange:function(e){newCat[1](function(p){return {name:e.target.value,color:p.color};});},required:true}),
+            h('div',{style:{display:'flex',alignItems:'center',gap:6}},
+              h('label',{style:{color:'#8090b0',fontSize:13}},'Color:'),
+              h('input',{type:'color',value:newCat[0].color,onChange:function(e){newCat[1](function(p){return {name:p.name,color:e.target.value};});},style:{width:40,height:36,border:'none',background:'none',cursor:'pointer',padding:0}})
+            ),
+            h('button',{className:'btn btn-p',type:'submit'},'+ Agregar')
+          )
         )
-        :h('div',{style:{textAlign:'center',padding:'40px 20px',color:'#8090b0'}},
-          h('div',{style:{fontSize:42,marginBottom:12,opacity:.5}},'📦'),
-          h('p',{},'Sin productos. Toca "+ Nuevo" para crear el primero.')
-        )
+      ),
+      h('div',{},
+        h('h2',{style:{fontSize:15,fontWeight:700,marginBottom:12,color:'#e8edf8'}},'Categor\u00edas ('+cats[0].length+')'),
+        cats[0].length>0
+          ?h('div',{className:'cat-list'},cats[0].map(function(c){
+            var count=activos.filter(function(p){return p.category===c.id;}).length;
+            return h('div',{key:c.id,className:'cat-item'},
+              h('div',{className:'cat-color',style:{background:c.color}}),
+              h('span',{style:{color:'#e8edf8',fontSize:14,fontWeight:600}},c.name),
+              h('span',{style:{color:'#8090b0',fontSize:12}},count+' producto'+(count!==1?'s':'')),
+              h('button',{onClick:function(){delCat(c.id);},style:{background:'none',border:'none',color:'#ef4444',cursor:'pointer',fontSize:16,padding:'0 4px'}},'\xd7')
+            );
+          }))
+          :h('div',{style:{color:'#8090b0',padding:'20px 0',fontSize:13}},'A\u00fan no has creado categor\u00edas.')
+      )
     )
   );
 }
+
+
 
 /* CATALOGO */
 function Catalog(){
