@@ -2,20 +2,22 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="description" content="IscoTech.Store \u2014 Accesorios tecnol�gicos, gadgets y electr�nicos en Armenia, Colombia. Nequi, transferencia, efectivo. Entrega a domicilio.">
+<meta name="keywords" content="accesorios tecnologia armenia colombia, gadgets, audifonos, cargadores, celulares, tablets, IscoTech">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0">
-<title>IscoTech.Store</title>
+<title>IscoTech.Store \u2014 Accesorios y gadgets tecnol\u00f3gicos | Armenia, Colombia</title>
 
 <!-- Open Graph / WhatsApp / iMessage preview -->
 <meta property="og:type"        content="website">
 <meta property="og:url"         content="https://techstore-4eea2.web.app/">
 <meta property="og:title"       content="IscoTech.Store">
-<meta property="og:description" content="Tecnología de calidad al mejor precio. Accesorios, gadgets y más.">
+<meta property="og:description" content="Accesorios tech, gadgets y electrónicos de calidad en Armenia. Nequi, transferencia y domicilio. Consulta por WhatsApp.">
 <meta property="og:image"       content="https://iscosanchezl.github.io/techstore/Logo_Fnal1.webp">
 <meta property="og:image:width"  content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card"        content="summary_large_image">
 <meta name="twitter:title"       content="IscoTech.Store">
-<meta name="twitter:description" content="Tecnología de calidad al mejor precio.">
+<meta name="twitter:description" content="Accesorios tech y gadgets en Armenia, Colombia. Pago fácil y entrega rápida.">
 <meta name="twitter:image"       content="https://iscosanchezl.github.io/techstore/Logo_Fnal1.webp">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -451,105 +453,219 @@ function Admin(props){
 /* CATALOGO */
 function Catalog(){
   var prods=React.useState([]),loading=React.useState(true),sel=React.useState(null),imgI=React.useState(0);
+  var cats=React.useState([]);
+  var filtro=React.useState('todos'); // categoria activa
+  var busqueda=React.useState('');
 
-  // Leer productos de Firebase
   React.useEffect(function(){
     var ref=db.ref('products');
     function cb(snap){
       var d=snap.val();
       var lista=d?Object.keys(d).map(function(k){var o={id:k};var v=d[k];Object.keys(v).forEach(function(x){o[x]=v[x];});return o;}).filter(function(p){return !p.deleted;}):[];
-      prods[1](lista);
-      loading[1](false);
+      prods[1](lista);loading[1](false);
     }
-    ref.on('value',cb);
-    return function(){ref.off('value',cb);};
+    ref.on('value',cb);return function(){ref.off('value',cb);};
   },[]);
 
-  // Sincronizar hash con producto seleccionado
+  React.useEffect(function(){
+    var ref=db.ref('categories');
+    function cb(snap){
+      var d=snap.val();
+      cats[1](d?Object.keys(d).map(function(k){return {id:k,name:d[k].name,color:d[k].color||'#00e5ff'};}):[]);
+    }
+    ref.on('value',cb);return function(){ref.off('value',cb);};
+  },[]);
+
   React.useEffect(function(){
     function onHash(){
       var h=location.hash;
-      // formato: #catalogo/PRODUCT_ID
       var m=h.match(/^#catalogo\/(.+)$/);
       if(m){
-        // buscar en prods actuales
         var found=prods[0].find(function(p){return p.id===m[1];});
         if(found){sel[1](found);imgI[1](0);}
-        // si aun no cargaron, marcar id pendiente
-        else{ window.__pendingProductId=m[1]; }
-      } else {
-        sel[1](null);imgI[1](0);
-      }
+        else{window.__pendingProductId=m[1];}
+      } else {sel[1](null);imgI[1](0);}
     }
     window.addEventListener('hashchange',onHash);
-    onHash(); // ejecutar al montar
+    onHash();
     return function(){window.removeEventListener('hashchange',onHash);};
   },[prods[0]]);
 
-  // Cuando cargan los productos, abrir el pendiente si hay
   React.useEffect(function(){
-    if(window.__pendingProductId && prods[0].length>0){
+    if(window.__pendingProductId&&prods[0].length>0){
       var found=prods[0].find(function(p){return p.id===window.__pendingProductId;});
       if(found){sel[1](found);imgI[1](0);window.__pendingProductId=null;}
     }
   },[prods[0]]);
 
-  function open(p){
-    location.hash='#catalogo/'+p.id;
-    sel[1](p);imgI[1](0);
-  }
-  function close(){
-    location.hash='#catalogo';
-    sel[1](null);imgI[1](0);
-  }
+  function open(p){location.hash='#catalogo/'+p.id;sel[1](p);imgI[1](0);}
+  function close(){location.hash='#catalogo';sel[1](null);imgI[1](0);}
+
+  // Filtrar productos
+  var visibles=prods[0].filter(function(p){
+    var matchCat=filtro[0]==='todos'||p.category===filtro[0];
+    var q=busqueda[0].toLowerCase().trim();
+    var matchQ=!q||(p.name&&p.name.toLowerCase().indexOf(q)!==-1)||(p.description&&p.description.toLowerCase().indexOf(q)!==-1);
+    return matchCat&&matchQ;
+  });
+  var disponibles=visibles.filter(function(p){return !p.paused&&!(p.stock!=null&&p.stock===0);}).length;
+
   if(loading[0]) return h(Spinner);
-  if(sel[0]) return h('div',{className:'modal'},
-    h('div',{className:'modal-c'},
-      h('button',{className:'close-btn',onClick:close},'×'),
-      h('div',{className:'modal-imgs'},
-        sel[0].photos&&sel[0].photos[0]&&h('img',{className:'mimg',src:sel[0].photos[imgI[0]]||sel[0].photos[0]}),
-        sel[0].photos&&sel[0].photos.length>1&&h('div',{className:'mthumbs'},
-          sel[0].photos.map(function(ph,i){return h('img',{key:i,src:ph,className:'mthumb'+(i===imgI[0]?' on':''),onClick:function(){imgI[1](i);}});})
+
+  // ── MODAL DETALLE PRODUCTO ──
+  if(sel[0]){
+    var sp=sel[0];
+    var agotadoSel=sp.paused||(sp.stock!=null&&sp.stock===0);
+    var catSel=cats[0].find(function(c){return c.id===sp.category;});
+    return h('div',{className:'modal'},
+      h('div',{className:'modal-c'},
+        h('button',{className:'close-btn',onClick:close},'\xd7'),
+        h('div',{className:'modal-imgs'},
+          sp.photos&&sp.photos[0]&&h('img',{className:'mimg',src:sp.photos[imgI[0]]||sp.photos[0]}),
+          sp.photos&&sp.photos.length>1&&h('div',{className:'mthumbs'},
+            sp.photos.map(function(ph,i){return h('img',{key:i,src:ph,className:'mthumb'+(i===imgI[0]?' on':''),onClick:function(){imgI[1](i);}});})
+          )
+        ),
+        h('div',{className:'minfo'},
+          catSel&&h('span',{style:{display:'inline-block',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700,background:catSel.color+'22',color:catSel.color,border:'1px solid '+catSel.color+'44',marginBottom:8}},catSel.name),
+          h('h1',{className:'mtitle'},sp.name||'Sin nombre'),
+          agotadoSel
+            ?h('div',{style:{fontSize:18,fontWeight:800,color:'#ef4444',marginBottom:12}},'\u274c Sin stock disponible')
+            :h('div',{className:'mprice'},sp.price||'\u2014'),
+          sp.stock!=null&&!agotadoSel&&h('div',{style:{fontSize:12,color:'#22c55e',marginBottom:8,fontWeight:600}},'\u2705 '+sp.stock+' unidad'+(sp.stock!==1?'es':'')+' disponible'+(sp.stock!==1?'s':'')),
+          sp.description&&h('p',{className:'mdesc'},sp.description),
+          // Info adicional si tiene specs
+          sp.specs&&h('div',{style:{background:'rgba(255,255,255,.04)',borderRadius:8,padding:'12px',marginBottom:14}},
+            h('p',{style:{color:'#8090b0',fontSize:12,fontWeight:700,marginBottom:6,letterSpacing:'.5px'}},'ESPECIFICACIONES'),
+            h('p',{style:{color:'#c0cfe0',fontSize:13,lineHeight:1.7}},sp.specs)
+          ),
+          // Info de compra
+          h('div',{style:{background:'rgba(0,229,255,.06)',border:'1px solid rgba(0,229,255,.15)',borderRadius:8,padding:'10px 14px',marginBottom:14}},
+            h('p',{style:{color:'#00e5ff',fontSize:12,fontWeight:700,marginBottom:4}},'\ud83d\udcb3 \u00bfC\u00f3mo comprar?'),
+            h('p',{style:{color:'#a0b8d0',fontSize:12,lineHeight:1.6}},'Escr\u00edbenos por WhatsApp, acordamos el pago y la entrega. Aceptamos transferencia, Nequi y efectivo.')
+          ),
+          agotadoSel
+            ?h('button',{className:'btn btn-s',disabled:true,style:{width:'100%',marginBottom:10,opacity:.5}},'Sin stock')
+            :h('a',{className:'btn btn-wa',
+              href:'https://wa.me/573113009439?text='+encodeURIComponent('Hola! Me interesa el producto: *'+(sp.name||'')+'*\nPrecio: '+(sp.price||'')+'\nLink: https://iscosanchezl.github.io/techstore/#catalogo/'+sp.id),
+              target:'_blank',rel:'noopener noreferrer',
+              style:{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:10,textDecoration:'none',padding:'13px 18px'}},
+              h('svg',{xmlns:'http://www.w3.org/2000/svg',width:22,height:22,viewBox:'0 0 32 32',fill:'#fff',style:{flexShrink:0}},
+                h('path',{d:'M16 0C7.164 0 0 7.163 0 16c0 2.824.738 5.476 2.027 7.788L0 32l8.418-2.004A15.93 15.93 0 0016 32c8.836 0 16-7.163 16-16S24.836 0 16 0zm0 29.333a13.27 13.27 0 01-6.79-1.858l-.487-.29-5.003 1.192 1.22-4.863-.32-.5A13.257 13.257 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.27-9.778c-.398-.2-2.356-1.163-2.72-1.295-.365-.133-.63-.2-.896.2-.265.398-1.03 1.295-1.262 1.56-.232.266-.465.3-.863.1-.398-.2-1.682-.62-3.204-1.977-1.184-1.056-1.983-2.36-2.215-2.758-.232-.398-.025-.613.174-.81.179-.178.398-.465.597-.698.2-.232.265-.398.398-.664.133-.265.067-.498-.033-.698-.1-.2-.896-2.16-1.228-2.957-.323-.776-.65-.67-.896-.683-.232-.012-.498-.015-.763-.015-.265 0-.697.1-1.063.498-.365.398-1.394 1.362-1.394 3.322 0 1.96 1.427 3.854 1.626 4.12.2.265 2.808 4.287 6.803 6.014.951.41 1.693.655 2.271.839.954.304 1.823.261 2.51.158.765-.114 2.356-.963 2.688-1.893.332-.93.332-1.727.232-1.893-.1-.166-.365-.265-.763-.465z'})
+              ),
+              'Consultar por WhatsApp'
+            ),
+          h('button',{className:'btn btn-p',onClick:close,style:{width:'100%'}},'\u2190 Volver al cat\u00e1logo')
         )
-      ),
-      h('div',{className:'minfo'},
-        h('h1',{className:'mtitle'},sel[0].name||'Sin nombre'),
-        h('div',{className:'mprice'},sel[0].price||'\u2014'),
-        sel[0].description&&h('p',{className:'mdesc'},sel[0].description),
-        h('a',{className:'btn btn-wa',href:'https://wa.me/573113009439?text='+encodeURIComponent('Hola! Me interesa el producto: *'+(sel[0].name||'')+'*\n'+'Precio: '+(sel[0].price||'')+'\n'+'Link: https://iscosanchezl.github.io/techstore/#catalogo/'+sel[0].id),target:'_blank',rel:'noopener noreferrer',style:{width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:10,marginBottom:10,textDecoration:'none',padding:'13px 18px'}},h('svg',{xmlns:'http://www.w3.org/2000/svg',width:22,height:22,viewBox:'0 0 32 32',fill:'#fff',style:{flexShrink:0}},h('path',{d:'M16 0C7.164 0 0 7.163 0 16c0 2.824.738 5.476 2.027 7.788L0 32l8.418-2.004A15.93 15.93 0 0016 32c8.836 0 16-7.163 16-16S24.836 0 16 0zm0 29.333a13.27 13.27 0 01-6.79-1.858l-.487-.29-5.003 1.192 1.22-4.863-.32-.5A13.257 13.257 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.27-9.778c-.398-.2-2.356-1.163-2.72-1.295-.365-.133-.63-.2-.896.2-.265.398-1.03 1.295-1.262 1.56-.232.266-.465.3-.863.1-.398-.2-1.682-.62-3.204-1.977-1.184-1.056-1.983-2.36-2.215-2.758-.232-.398-.025-.613.174-.81.179-.178.398-.465.597-.698.2-.232.265-.398.398-.664.133-.265.067-.498-.033-.698-.1-.2-.896-2.16-1.228-2.957-.323-.776-.65-.67-.896-.683-.232-.012-.498-.015-.763-.015-.265 0-.697.1-1.063.498-.365.398-1.394 1.362-1.394 3.322 0 1.96 1.427 3.854 1.626 4.12.2.265 2.808 4.287 6.803 6.014.951.41 1.693.655 2.271.839.954.304 1.823.261 2.51.158.765-.114 2.356-.963 2.688-1.893.332-.93.332-1.727.232-1.893-.1-.166-.365-.265-.763-.465z'})),'Consultar por WhatsApp'),
-        h('button',{className:'btn btn-p',onClick:close,style:{width:'100%'}},'\u2190 Volver al cat\xe1logo')
       )
-    )
-  );
+    );
+  }
+
+  // ── GRID CATÁLOGO ──
   return h('div',{className:'container'},
-    h('div',{style:{textAlign:'center',padding:'30px 0 14px'}},
-      h(LogoLg,{size:'260px',mb:'8px'}),
-      h('p',{style:{color:'#8090b0',fontSize:13}},prods[0].length+' productos disponibles')
+    // Header
+    h('div',{style:{textAlign:'center',padding:'28px 0 10px'}},
+      h(LogoLg,{size:'240px',mb:'6px'}),
+      h('p',{style:{color:'#8090b0',fontSize:13}},disponibles+' productos disponibles')
     ),
-    prods[0].length>0
+
+    // Buscador
+    h('div',{style:{position:'relative',marginBottom:14}},
+      h('input',{className:'inp',type:'text',placeholder:'\ud83d\udd0d Buscar producto...',
+        value:busqueda[0],onChange:function(e){busqueda[1](e.target.value);},
+        style:{paddingLeft:16,fontSize:15}}),
+      busqueda[0]&&h('button',{onClick:function(){busqueda[1]('');},
+        style:{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#8090b0',cursor:'pointer',fontSize:18}},'\xd7')
+    ),
+
+    // Filtros por categoría
+    cats[0].length>0&&h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}},
+      h('button',{
+        onClick:function(){filtro[1]('todos');},
+        style:{padding:'6px 14px',borderRadius:20,border:'1px solid '+(filtro[0]==='todos'?'#00e5ff':'rgba(255,255,255,.15)'),
+          background:filtro[0]==='todos'?'rgba(0,229,255,.15)':'transparent',
+          color:filtro[0]==='todos'?'#00e5ff':'#8090b0',fontSize:12,fontWeight:700,cursor:'pointer'}
+      },'Todos'),
+      cats[0].map(function(c){
+        var on=filtro[0]===c.id;
+        return h('button',{key:c.id,
+          onClick:function(){filtro[1](c.id);},
+          style:{padding:'6px 14px',borderRadius:20,border:'1px solid '+(on?c.color:'rgba(255,255,255,.15)'),
+            background:on?c.color+'22':'transparent',
+            color:on?c.color:'#8090b0',fontSize:12,fontWeight:700,cursor:'pointer'}
+        },c.name);
+      })
+    ),
+
+    // Grid
+    visibles.length>0
       ?h('div',{className:'grid'},
-        prods[0].map(function(p){
+        visibles.map(function(p){
           var agotado=p.paused||(p.stock!=null&&p.stock===0);
+          var cat=cats[0].find(function(c){return c.id===p.category;});
           return h('div',{key:p.id,className:'card pcard'+(agotado?' pcard-nostock':''),
-            onClick:agotado?undefined:function(){open(p);},style:agotado?{opacity:.72}:{}},
+            onClick:agotado?undefined:function(){open(p);},
+            style:agotado?{opacity:.72}:{}},
             agotado&&h('div',{className:'badge-nostock'},'\u274c SIN STOCK'),
             p.photos&&p.photos[0]&&h('img',{src:p.photos[0],className:'pimg',style:agotado?{filter:'grayscale(.5)'}:{}}),
-            p.photos&&p.photos.length>1&&h('div',{style:{position:'absolute',top:agotado?26:7,right:7,background:'rgba(0,0,0,.65)',color:'#fff',padding:'3px 7px',borderRadius:4,fontSize:10,fontWeight:700}},p.photos.length+' \xf0\x9f\x93\xb7'),
+            p.photos&&p.photos.length>1&&h('div',{style:{position:'absolute',top:agotado?26:7,right:7,background:'rgba(0,0,0,.65)',color:'#fff',padding:'3px 7px',borderRadius:4,fontSize:10,fontWeight:700}},p.photos.length+' \ud83d\udcf7'),
             h('div',{className:'pcont'},
+              cat&&h('span',{style:{fontSize:10,fontWeight:700,color:cat.color,display:'block',marginBottom:3}},cat.name.toUpperCase()),
               h('h3',{className:'ptitle'},p.name||'Sin nombre'),
-              agotado?h('div',{style:{fontSize:13,fontWeight:700,color:'#ef4444',marginTop:2}},'Sin stock disponible'):h('div',{className:'pprice'},p.price||'\u2014'),
-              p.description&&h('p',{className:'pdesc'},p.description)
+              agotado
+                ?h('div',{style:{fontSize:12,fontWeight:700,color:'#ef4444',marginTop:2}},'Sin stock')
+                :h('div',{className:'pprice'},p.price||'\u2014'),
+              p.stock!=null&&!agotado&&p.stock<=3&&h('span',{style:{fontSize:10,color:'#f59e0b',fontWeight:700}},'\u26a0\ufe0f \xdaltimas '+p.stock+' unidades')
             )
           );
         })
       )
-      :h('div',{style:{textAlign:'center',padding:'60px 20px',color:'#8090b0'}},
-        h('div',{style:{fontSize:46,marginBottom:12,opacity:.5}},'🏪'),
-        h('h3',{style:{fontSize:16,fontWeight:700,marginBottom:8}},'Cat\xe1logo en construcci\xf3n'),
-        h('p',{style:{fontSize:13}},'Pronto nuevos productos')
+      :h('div',{style:{textAlign:'center',padding:'50px 20px',color:'#8090b0',gridColumn:'1/-1'}},
+        h('div',{style:{fontSize:40,marginBottom:10,opacity:.4}},busqueda[0]?'\ud83d\udd0d':'\ud83c\udfd7'),
+        h('p',{style:{fontSize:14}},busqueda[0]?'Sin resultados para "'+busqueda[0]+'"':'No hay productos en esta categor\u00eda.')
+      ),
+
+    // Info de la tienda al final
+    h('div',{style:{marginTop:32,padding:'20px',background:'rgba(255,255,255,.03)',borderRadius:14,border:'1px solid rgba(255,255,255,.08)'}},
+      h('h3',{style:{fontSize:15,fontWeight:700,marginBottom:14,background:'linear-gradient(135deg,#00e5ff,#d946ef)',backgroundClip:'text',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}},'\ud83d\uded2 C\u00f3mo comprar'),
+      h('div',{style:{display:'grid',gap:10}},
+        [
+          ['\ud83d\udcac','Escr\u00edbenos por WhatsApp','Consulta disponibilidad y acordamos el pago'],
+          ['\ud83d\udcb3','M\u00e9todos de pago','Transferencia, Nequi, Daviplata o efectivo'],
+          ['\ud83d\ude9a','Entrega','Domicilio en Armenia o recogida en punto'],
+          ['\ud83d\udee1\ufe0f','Garant\u00eda','Todos nuestros productos tienen garant\u00eda m\u00ednima de 3 meses']
+        ].map(function(item,i){
+          return h('div',{key:i,style:{display:'flex',gap:12,alignItems:'flex-start'}},
+            h('span',{style:{fontSize:20,flexShrink:0}},item[0]),
+            h('div',{},
+              h('p',{style:{color:'#e8edf8',fontSize:13,fontWeight:600}},item[1]),
+              h('p',{style:{color:'#8090b0',fontSize:12}},item[2])
+            )
+          );
+        })
+      ),
+      h('a',{href:'https://wa.me/573113009439?text='+encodeURIComponent('Hola! Quiero informaci\u00f3n sobre sus productos'),
+        target:'_blank',rel:'noopener noreferrer',
+        style:{marginTop:16,display:'flex',alignItems:'center',justifyContent:'center',gap:10,padding:'12px',borderRadius:8,background:'linear-gradient(135deg,#25d366,#1a9e50)',color:'#fff',fontWeight:700,fontSize:14,textDecoration:'none'}},
+        h('svg',{xmlns:'http://www.w3.org/2000/svg',width:20,height:20,viewBox:'0 0 32 32',fill:'#fff'},
+          h('path',{d:'M16 0C7.164 0 0 7.163 0 16c0 2.824.738 5.476 2.027 7.788L0 32l8.418-2.004A15.93 15.93 0 0016 32c8.836 0 16-7.163 16-16S24.836 0 16 0zm0 29.333a13.27 13.27 0 01-6.79-1.858l-.487-.29-5.003 1.192 1.22-4.863-.32-.5A13.257 13.257 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.27-9.778c-.398-.2-2.356-1.163-2.72-1.295-.365-.133-.63-.2-.896.2-.265.398-1.03 1.295-1.262 1.56-.232.266-.465.3-.863.1-.398-.2-1.682-.62-3.204-1.977-1.184-1.056-1.983-2.36-2.215-2.758-.232-.398-.025-.613.174-.81.179-.178.398-.465.597-.698.2-.232.265-.398.398-.664.133-.265.067-.498-.033-.698-.1-.2-.896-2.16-1.228-2.957-.323-.776-.65-.67-.896-.683-.232-.012-.498-.015-.763-.015-.265 0-.697.1-1.063.498-.365.398-1.394 1.362-1.394 3.322 0 1.96 1.427 3.854 1.626 4.12.2.265 2.808 4.287 6.803 6.014.951.41 1.693.655 2.271.839.954.304 1.823.261 2.51.158.765-.114 2.356-.963 2.688-1.893.332-.93.332-1.727.232-1.893-.1-.166-.365-.265-.763-.465z'})
+        ),
+        'Contactar por WhatsApp'
       )
+    ),
+
+    // WhatsApp flotante
+    h('a',{href:'https://wa.me/573113009439?text='+encodeURIComponent('Hola! Quiero informaci\u00f3n sobre sus productos'),
+      target:'_blank',rel:'noopener noreferrer',
+      style:{position:'fixed',bottom:24,right:20,width:56,height:56,borderRadius:'50%',background:'linear-gradient(135deg,#25d366,#1a9e50)',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 4px 20px rgba(37,211,102,.5)',zIndex:999,textDecoration:'none'}},
+      h('svg',{xmlns:'http://www.w3.org/2000/svg',width:28,height:28,viewBox:'0 0 32 32',fill:'#fff'},
+        h('path',{d:'M16 0C7.164 0 0 7.163 0 16c0 2.824.738 5.476 2.027 7.788L0 32l8.418-2.004A15.93 15.93 0 0016 32c8.836 0 16-7.163 16-16S24.836 0 16 0zm0 29.333a13.27 13.27 0 01-6.79-1.858l-.487-.29-5.003 1.192 1.22-4.863-.32-.5A13.257 13.257 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.27-9.778c-.398-.2-2.356-1.163-2.72-1.295-.365-.133-.63-.2-.896.2-.265.398-1.03 1.295-1.262 1.56-.232.266-.465.3-.863.1-.398-.2-1.682-.62-3.204-1.977-1.184-1.056-1.983-2.36-2.215-2.758-.232-.398-.025-.613.174-.81.179-.178.398-.465.597-.698.2-.232.265-.398.398-.664.133-.265.067-.498-.033-.698-.1-.2-.896-2.16-1.228-2.957-.323-.776-.65-.67-.896-.683-.232-.012-.498-.015-.763-.015-.265 0-.697.1-1.063.498-.365.398-1.394 1.362-1.394 3.322 0 1.96 1.427 3.854 1.626 4.12.2.265 2.808 4.287 6.803 6.014.951.41 1.693.655 2.271.839.954.304 1.823.261 2.51.158.765-.114 2.356-.963 2.688-1.893.332-.93.332-1.727.232-1.893-.1-.166-.365-.265-.763-.465z'})
+      )
+    )
   );
 }
+
+
 
 /* APP */
 function App(){
