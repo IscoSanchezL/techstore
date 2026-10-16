@@ -461,16 +461,31 @@ function Catalog(){
   var cats=React.useState([]);
   var filtro=React.useState('todos'); // categoria activa
   var busqueda=React.useState('');
+  // Carga paginada: las fotos viajan dentro de cada producto, asi que se piden de a PAGINA
+  // y solo se descarga todo si el cliente busca, filtra o pulsa "Ver todos".
+  var PAGINA=12;
+  var lim=React.useState(PAGINA),hayMas=React.useState(false);
 
   React.useEffect(function(){
-    var ref=db.ref('products');
+    var ref=lim[0]?db.ref('products').orderByKey().limitToLast(lim[0]):db.ref('products');
     function cb(snap){
-      var d=snap.val();
-      var lista=d?Object.keys(d).map(function(k){var o={id:k};var v=d[k];Object.keys(v).forEach(function(x){o[x]=v[x];});return o;}).filter(function(p){return !p.deleted;}):[];
-      prods[1](lista);loading[1](false);
+      var lista=[],total=0;
+      snap.forEach(function(c){
+        total++;
+        var v=c.val();
+        if(!v||v.deleted) return;
+        var o={id:c.key};Object.keys(v).forEach(function(x){o[x]=v[x];});
+        lista.push(o);
+      });
+      prods[1](lista);hayMas[1](!!lim[0]&&total>=lim[0]);loading[1](false);
     }
     ref.on('value',cb);return function(){ref.off('value',cb);};
-  },[]);
+  },[lim[0]]);
+
+  // Si el cliente busca o filtra, se necesita el catalogo completo
+  React.useEffect(function(){
+    if(lim[0]&&(busqueda[0].trim()||filtro[0]!=='todos')) lim[1](null);
+  },[busqueda[0],filtro[0]]);
 
   React.useEffect(function(){
     var ref=db.ref('categories');
@@ -488,7 +503,17 @@ function Catalog(){
       if(m){
         var found=prods[0].find(function(p){return p.id===m[1];});
         if(found){sel[1](found);imgI[1](0);}
-        else{window.__pendingProductId=m[1];}
+        else{
+          // enlace compartido a un producto fuera de la primera pagina: se pide solo ese
+          window.__pendingProductId=m[1];
+          db.ref('products/'+m[1]).once('value').then(function(sn){
+            var v=sn.val();
+            if(v&&!v.deleted&&window.__pendingProductId===m[1]){
+              var o={id:m[1]};Object.keys(v).forEach(function(x){o[x]=v[x];});
+              sel[1](o);imgI[1](0);window.__pendingProductId=null;
+            }
+          });
+        }
       } else {sel[1](null);imgI[1](0);}
     }
     window.addEventListener('hashchange',onHash);
@@ -513,7 +538,7 @@ function Catalog(){
     var matchQ=!q||(p.name&&p.name.toLowerCase().indexOf(q)!==-1)||(p.description&&p.description.toLowerCase().indexOf(q)!==-1);
     return matchCat&&matchQ;
   });
-  var disponibles=visibles.filter(function(p){return !p.paused&&!(p.stock!=null&&p.stock===0);}).length;
+  var disponibles=visibles.filter(function(p){return !p.paused&&!(p.stock!=null&&p.stock===0);}).length+(hayMas[0]?'+':'');
 
   if(loading[0]) return h(Spinner);
 
@@ -629,6 +654,10 @@ function Catalog(){
         h('div',{style:{fontSize:40,marginBottom:10,opacity:.4}},busqueda[0]?'\ud83d\udd0d':'\ud83c\udfd7'),
         h('p',{style:{fontSize:14}},busqueda[0]?'Sin resultados para "'+busqueda[0]+'"':'No hay productos en esta categor\u00eda.')
       ),
+
+    hayMas[0]&&visibles.length>0&&h('div',{style:{textAlign:'center',marginTop:18}},
+      h('button',{className:'btn btn-p',onClick:function(){lim[1](null);}},'Ver todos los productos')
+    ),
 
     // Info de la tienda al final
     h('div',{style:{marginTop:32,padding:'20px',background:'rgba(255,255,255,.03)',borderRadius:14,border:'1px solid rgba(255,255,255,.08)'}},
