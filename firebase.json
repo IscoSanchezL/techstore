@@ -4,13 +4,18 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "*.md",
+      ".github/**"
     ],
     "headers": [
       {
         "source": "**",
         "headers": [
-          { "key": "X-Robots-Tag", "value": "all" }
+          {
+            "key": "X-Robots-Tag",
+            "value": "all"
+          }
         ]
       }
     ],
